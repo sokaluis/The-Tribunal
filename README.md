@@ -1,5 +1,7 @@
 # The Tribunal
 
+![The Tribunal](./Banner.png)
+
 Put yourself on trial. Submit a dilemma, confession, opinion, or idea. A panel of AI judges will prosecute it, defend it, and deliver a verdict.
 
 ## What it is
