@@ -22,7 +22,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     name: 'Moral Tribunal',
     description: 'Judges ethical choices using philosophical frameworks.',
     tone: 'philosophical, rigorous, slightly solemn',
-    scoreLabel: 'Moral Score',
+    scoreLabel: 'Immorality Score',
     possibleVerdicts: [
       'Guilty',
       'Not Guilty',
@@ -63,7 +63,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     name: 'Relationship Tribunal',
     description: 'Judges interpersonal behavior, communication, and emotional responsibility.',
     tone: 'empathetic but direct, emotionally intelligent, occasionally wry',
-    scoreLabel: 'Relationship Damage Score',
+    scoreLabel: 'Asshole Score',
     possibleVerdicts: [
       'Emotionally guilty',
       'Not guilty',
@@ -104,7 +104,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     name: 'Idea Tribunal',
     description: 'Judges startup ideas, creative concepts, and product ideas.',
     tone: 'incisive, constructive, occasionally savage',
-    scoreLabel: 'Viability Score',
+    scoreLabel: 'Concept Sillyness Score',
     possibleVerdicts: [
       'Promising',
       'Overcomplicated',
@@ -146,7 +146,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     name: 'Opinion Tribunal',
     description: 'Judges hot takes, arguments, beliefs, and opinions.',
     tone: 'intellectually rigorous, sharp, occasionally Socratic',
-    scoreLabel: 'Argument Strength',
+    scoreLabel: 'Argument Weakness Score',
     possibleVerdicts: [
       'Defensible',
       'Underargued',
@@ -225,6 +225,12 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     ],
   },
 }
+
+export const SCORE_SCALE_HINT =
+  'Score is 0-100 where 0 is best for the person who submitted the case and 100 is worst for them (higher = more culpable, harmful, flawed, or cursed).'
+
+export const APPEAL_SCORE_SCALE_HINT =
+  'Score is 0-100 where 0 is best for the appellant (appeal succeeds) and 100 is worst for the appellant (appeal denied).'
 
 export const TRIBUNAL_IDS = Object.keys(TRIBUNALS) as TribunalId[]
 

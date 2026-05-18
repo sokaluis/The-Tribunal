@@ -121,7 +121,7 @@ export function HomePage() {
             <VerdictCard
               shareCard={SAMPLE_CARD}
               score={72}
-              scoreLabel="Relationship Damage Score"
+              scoreLabel="Asshole Score"
               tribunalType="relationship"
               caseText={SAMPLE_CASE_TEXT}
             />

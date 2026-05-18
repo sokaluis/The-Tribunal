@@ -148,7 +148,7 @@ Before step 1, a regex keyword check (`quickKeywordCheck` in `safety.ts`) catche
 | `GET` | `/api/trials/:id` | Poll for status and full result |
 | `POST` | `/api/trials/:id/appeal` | File appeal (see [Appeals](#appeals)) |
 | `POST` | `/api/trials/:id/publish` | Make verdict public in gallery |
-| `GET` | `/api/gallery` | Public verdicts (`?filter=recent\|guilty\|innocent\|divisive`) |
+| `GET` | `/api/gallery` | Public verdicts (`?sort=latest\|condemned\|vindicated\|contested`) |
 | `GET` | `/api/tribunals` | Tribunal type definitions |
 
 ## Tribunal types
@@ -158,6 +158,27 @@ Before step 1, a regex keyword check (`quickKeywordCheck` in `safety.ts`) catche
 - **Idea Tribunal** — startup and creative ideas
 - **Opinion Tribunal** — hot takes and arguments
 - **Roast Tribunal** — comedic, brutal, still insightful
+
+### Scores (0–100)
+
+Every tribunal uses the same direction: **higher = worse for the person who submitted the case**.
+
+Gallery sort modes (`?sort=`):
+
+| Sort | Behavior |
+|------|----------|
+| `latest` | Newest public verdicts first |
+| `condemned` | Highest badness score first |
+| `vindicated` | Lowest badness score first |
+| `contested` | Panel split when available; otherwise scores nearest 50 |
+
+| Tribunal | Score label |
+|----------|-------------|
+| Moral | Immorality Score |
+| Relationship | Asshole Score |
+| Idea | Concept Sillyness Score |
+| Opinion | Argument Weakness Score |
+| Roast | Cursedness Score |
 
 ## Appeals
 

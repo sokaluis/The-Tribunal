@@ -11,17 +11,7 @@ import { SafetyBlockedView } from '../components/SafetyBlockedView'
 import { ErrorState } from '../components/ErrorState'
 import type { TrialResult, TribunalType, AppealGround } from '../types'
 import { APPEAL_GROUND_LABELS } from '../types'
-
-function getLeaningColors(verdict: string) {
-  const v = verdict.toLowerCase()
-  if (v.includes('not guilty') || v.includes('innocent') || v.includes('promising') || v.includes('defensible')) {
-    return { bg: 'rgba(22,163,74,0.08)', text: '#16a34a', border: 'rgba(22,163,74,0.25)' }
-  }
-  if (v.includes('complicated') || v.includes('mostly') || v.includes('mitigating') || v.includes('needs') || v.includes('framed') || v.includes('shallow') || v.includes('somehow')) {
-    return { bg: 'rgba(217,119,6,0.08)', text: '#d97706', border: 'rgba(217,119,6,0.25)' }
-  }
-  return { bg: 'rgba(220,38,38,0.08)', text: '#dc2626', border: 'rgba(220,38,38,0.25)' }
-}
+import { getScoreSeverityColors } from '../utils/scoreSeverity'
 
 function Divider() {
   return <div className="border-t border-[#1e1e2e]" />
@@ -55,7 +45,7 @@ function AppealBanner({ trial }: { trial: TrialResult }) {
 }
 
 function VerdictHero({ trial }: { trial: TrialResult }) {
-  const colors = getLeaningColors(trial.verdict)
+  const colors = getScoreSeverityColors(trial.score)
   const isAppeal = !!trial.appealOfId
   return (
     <div className="pt-10 pb-8 text-center animate-fade-in">

@@ -4,13 +4,13 @@ import { VerdictCard } from '../components/VerdictCard'
 import { ShareButtons } from '../components/ShareButtons'
 import type { ShareCard } from '../types'
 
-type Filter = 'recent' | 'guilty' | 'innocent' | 'divisive'
+type GallerySort = 'latest' | 'condemned' | 'vindicated' | 'contested'
 
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: 'recent', label: 'Most recent' },
-  { id: 'guilty', label: 'Most guilty' },
-  { id: 'innocent', label: 'Most redeemable' },
-  { id: 'divisive', label: 'Most divisive' },
+const SORTS: Array<{ id: GallerySort; label: string }> = [
+  { id: 'latest', label: 'Latest' },
+  { id: 'condemned', label: 'Most condemned' },
+  { id: 'vindicated', label: 'Most vindicated' },
+  { id: 'contested', label: 'Most contested' },
 ]
 
 interface GalleryVerdict {
@@ -25,20 +25,20 @@ interface GalleryVerdict {
 }
 
 export function GalleryPage() {
-  const [filter, setFilter] = useState<Filter>('recent')
+  const [sort, setSort] = useState<GallerySort>('latest')
   const [verdicts, setVerdicts] = useState<GalleryVerdict[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/gallery?filter=${filter}`)
+    fetch(`/api/gallery?sort=${sort}`)
       .then((r) => r.json())
       .then((data) => {
         setVerdicts(data.verdicts || [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [filter])
+  }, [sort])
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
@@ -58,21 +58,24 @@ export function GalleryPage() {
         </p>
       </div>
 
-      <div className="flex gap-2 justify-center mb-10 flex-wrap">
-        {FILTERS.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
-            className={[
-              'px-4 py-2 rounded-full text-xs font-medium transition-all cursor-pointer border',
-              filter === f.id
-                ? 'bg-[#d4a853]/10 border-[#d4a853]/40 text-[#d4a853]'
-                : 'border-[#1e1e2e] text-[#9ca3af] hover:border-[#2a2a3e] hover:text-[#f0ead6]',
-            ].join(' ')}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="flex flex-col items-center gap-3 mb-10">
+        <p className="text-[10px] uppercase tracking-widest text-[#6b7280] font-medium">Sort</p>
+        <div className="flex gap-2 justify-center flex-wrap">
+          {SORTS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setSort(s.id)}
+              className={[
+                'px-4 py-2 rounded-full text-xs font-medium transition-all cursor-pointer border',
+                sort === s.id
+                  ? 'bg-[#d4a853]/10 border-[#d4a853]/40 text-[#d4a853]'
+                  : 'border-[#1e1e2e] text-[#9ca3af] hover:border-[#2a2a3e] hover:text-[#f0ead6]',
+              ].join(' ')}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (

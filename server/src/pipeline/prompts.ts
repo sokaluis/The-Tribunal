@@ -1,4 +1,5 @@
 import type { TribunalType } from '../tribunals.js'
+import { SCORE_SCALE_HINT, APPEAL_SCORE_SCALE_HINT } from '../tribunals.js'
 import type { AppealContext } from './appeal-context.js'
 import { formatAppealBlock } from './appeal-context.js'
 
@@ -200,7 +201,7 @@ Possible appellate verdicts: ${appealVerdicts}
 Return a JSON object with this exact structure:
 {
   "verdict": "Choose the most fitting appellate verdict from the options above.",
-  "score": 0-100 (for "${tribunal.scoreLabel}": 0 = appeal fully justified / original ruling was terrible, 100 = appeal has no merit / original ruling was perfect),
+  "score": 0-100 (${APPEAL_SCORE_SCALE_HINT} Label: "${tribunal.scoreLabel}".),
   "finalReasoning": "The appellate judge's reasoning addressing both the original ruling and the appeal grounds. Balanced, sharp, and conclusive. 3-5 sentences. Max 150 words.",
   "sentence": "A revised or upheld sentence. Max 25 words. If appeal denied, you may keep the original sentence or modify it.",
   "recognized": "What the appellate court acknowledges about the appeal. Max 15 words.",
@@ -240,7 +241,7 @@ Possible verdicts: ${verdictOptions}
 Return a JSON object with this exact structure:
 {
   "verdict": "Choose the most fitting verdict from the options above.",
-  "score": 0-100 (for "${tribunal.scoreLabel}": 0 = completely innocent/viable/defensible, 100 = maximally guilty/terrible/indefensible),
+  "score": 0-100 (${SCORE_SCALE_HINT} Label: "${tribunal.scoreLabel}".),
   "finalReasoning": "The judge's reasoning. Balanced, sharp, and conclusive. 3-5 sentences. Max 150 words.",
   "sentence": "A specific, practical, non-preachy sentence for the person. Max 25 words. Example: 'Send one honest message. Under 120 words. No dramatic monologue.'",
   "recognized": "What the court acknowledges in the person's favor. Max 15 words.",

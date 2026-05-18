@@ -1,34 +1,11 @@
 import { forwardRef } from 'react'
 import type { ShareCard } from '../types'
+import { getScoreSeverityColors } from '../utils/scoreSeverity'
 
 export type VerdictOrientation = 'vertical' | 'horizontal'
 
-function getLeaningColors(verdict: string) {
-  const v = verdict.toLowerCase()
-  if (
-    v.includes('not guilty') ||
-    v.includes('innocent') ||
-    v.includes('promising') ||
-    v.includes('defensible')
-  ) {
-    return { bg: 'rgba(22,163,74,0.1)', text: '#16a34a', border: 'rgba(22,163,74,0.3)', accent: '#16a34a' }
-  }
-  if (
-    v.includes('complicated') ||
-    v.includes('mostly') ||
-    v.includes('mitigating') ||
-    v.includes('needs') ||
-    v.includes('framed') ||
-    v.includes('shallow') ||
-    v.includes('somehow')
-  ) {
-    return { bg: 'rgba(217,119,6,0.1)', text: '#d97706', border: 'rgba(217,119,6,0.3)', accent: '#d97706' }
-  }
-  return { bg: 'rgba(220,38,38,0.1)', text: '#dc2626', border: 'rgba(220,38,38,0.3)', accent: '#dc2626' }
-}
-
-function ScoreBadge({ score, label, verdict }: { score: number; label: string; verdict: string }) {
-  const colors = getLeaningColors(verdict)
+function ScoreBadge({ score, label }: { score: number; label: string }) {
+  const colors = getScoreSeverityColors(score)
   return (
     <div className="flex flex-col items-center shrink-0">
       <div
@@ -59,7 +36,7 @@ interface Props {
 
 export const VerdictCard = forwardRef<HTMLDivElement, Props>(
   ({ shareCard, score, scoreLabel, tribunalType, caseText, orientation = 'vertical', forExport = false }, ref) => {
-    const colors = getLeaningColors(shareCard.verdict)
+    const colors = getScoreSeverityColors(score)
     const isHorizontal = orientation === 'horizontal'
 
     const cardStyle: React.CSSProperties = {
@@ -99,7 +76,7 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
 
     const CaseRow = () => (
       <div className="flex items-start gap-4 mb-4">
-        <ScoreBadge score={score} label={scoreLabel} verdict={shareCard.verdict} />
+        <ScoreBadge score={score} label={scoreLabel} />
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-widest text-[#6b7280] mb-1">The case</p>
           <p className="text-sm text-[#d4cbb8] italic leading-relaxed line-clamp-4">
