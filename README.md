@@ -12,10 +12,10 @@ The Tribunal is a theatrical AI web app that runs a structured multi-step trial 
 
 - Five tribunal types: Moral, Relationship, Idea, Opinion, Roast
 - 4-call LLM pipeline (normalize, parallel prosecution/defense, panel, final verdict)
-- Verdict card with horizontal/vertical image download
+- Verdict card with charge, recognized/rejected blocks, and a full-width sentence footer; horizontal/vertical image download
 - Public gallery of verdicts
 - Appeals: re-try a case in a different tribunal
-- Safety filter on all submissions
+- Two-tier safety filter (keyword pre-check + LLM review) with context-appropriate blocked-trial UI
 - Real-time trial progress via polling
 
 ## Tech stack
@@ -95,6 +95,8 @@ server/         Express + TypeScript + Drizzle
   src/
     db/         Drizzle schema and libsql connection
     pipeline/   LLM orchestration (4 calls per trial)
+      prompts.ts  Prompt templates per pipeline step
+      safety.ts   Keyword pre-check and blocked-trial copy
     routes/     REST API endpoints
     tribunals.ts Tribunal type definitions
     types.ts    Shared response types
@@ -103,10 +105,14 @@ server/         Express + TypeScript + Drizzle
 
 ### LLM pipeline (4 rounds per trial)
 
-1. Normalize + safety check
-2. Prosecution and defense arguments (parallel)
-3. Panel judges
-4. Final verdict + share card data
+1. **Normalize** — Clerk summarizes the case and flags unsafe content (`isSafe`). Temperature 0.3.
+2. **Prosecution + defense** — Run in parallel. Each tribunal has its own tone and panel judges defined in `tribunals.ts`. Temperature 0.9.
+3. **Panel** — Four tribunal-specific judges each return a judgment, leaning, and key principle. Temperature 0.85.
+4. **Final verdict** — Judge picks from `possibleVerdicts`, assigns a score, and fills the share card (charge, recognized, rejected, sentence). Temperature 0.8.
+
+Prompt text for each step lives in `server/src/pipeline/prompts.ts`. All calls use OpenRouter with `response_format: { type: 'json_object' }` and Zod validation in `steps.ts`.
+
+Before step 1, a regex keyword check (`quickKeywordCheck` in `safety.ts`) catches high-risk crisis language without calling the LLM.
 
 ### Trial statuses
 
@@ -116,7 +122,7 @@ server/         Express + TypeScript + Drizzle
 | `processing` | Pipeline is running |
 | `completed` | Result ready |
 | `failed` | Pipeline error |
-| `safety_blocked` | Submission caught by safety filter |
+| `safety_blocked` | Submission blocked; see [Safety](#safety) |
 
 ### API endpoints
 
@@ -139,4 +145,27 @@ server/         Express + TypeScript + Drizzle
 
 ## Safety
 
-Submissions involving self-harm, suicide, serious threats, or child exploitation are caught at step 1 and returned as a `safety_blocked` response with resource links. No comedic verdict is generated for these cases.
+Blocked trials return `status: "safety_blocked"` with a `safetyType`, `safetyMessage`, and optionally `resources`. No verdict is generated.
+
+| `safetyType` | When | UI |
+|--------------|------|-----|
+| `crisis` | Keyword pre-check matches self-harm, suicide, threats, or child exploitation patterns | "We see you." + crisis hotline resources |
+| `content_policy` | Normalize step sets `isSafe: false` (e.g. hate speech, violence against groups, extremist content) | "Case dismissed." + policy message, no resources |
+
+**Crisis path** — Runs before any LLM call. Uses regex patterns in `server/src/pipeline/safety.ts`. Stores `SAFETY_MESSAGE` and `safetyType: "crisis"`.
+
+**Content policy path** — Runs during normalize. The Clerk prompt instructs the model to reject content that promotes hatred, violence against groups, or similar harm while allowing normal confessions, dilemmas, and dark humor. Stores `CONTENT_POLICY_MESSAGE` and `safetyType: "content_policy"`.
+
+`GET /api/trials/:id` for a blocked trial:
+
+```json
+{
+  "id": "...",
+  "status": "safety_blocked",
+  "safetyType": "content_policy",
+  "safetyMessage": "The Tribunal can't hear this case...",
+  "resources": []
+}
+```
+
+For `crisis`, `resources` includes 988, Crisis Text Line, and related links.
