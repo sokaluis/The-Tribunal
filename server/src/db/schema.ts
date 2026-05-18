@@ -15,6 +15,7 @@ export const trials = sqliteTable('trials', {
   sentence: text('sentence'),
   shareCardJson: text('share_card_json'),
   safetyMessage: text('safety_message'),
+  safetyType: text('safety_type'),
   appealOfId: text('appeal_of_id'),
   isPublic: integer('is_public').notNull().default(0),
   modelUsed: text('model_used'),

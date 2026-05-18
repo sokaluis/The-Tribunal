@@ -45,7 +45,8 @@ function buildTrialResponse(
       id: trial.id,
       status: 'safety_blocked',
       safetyMessage: trial.safetyMessage ?? 'This submission could not be processed.',
-      resources: SAFETY_RESOURCES,
+      safetyType: (trial.safetyType as 'crisis' | 'content_policy' | null) ?? 'crisis',
+      resources: trial.safetyType === 'content_policy' ? [] : SAFETY_RESOURCES,
     }
   }
 

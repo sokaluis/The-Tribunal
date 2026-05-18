@@ -140,7 +140,11 @@ export function TrialPage() {
   if (data.status === 'safety_blocked') {
     return (
       <div className="max-w-2xl mx-auto px-4">
-        <SafetyBlockedView safetyMessage={data.safetyMessage} resources={data.resources} />
+        <SafetyBlockedView
+          safetyMessage={data.safetyMessage}
+          safetyType={data.safetyType}
+          resources={data.resources}
+        />
       </div>
     )
   }

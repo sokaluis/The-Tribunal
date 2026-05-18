@@ -73,6 +73,7 @@ export interface TrialSafetyBlockedResponse {
   id: string
   status: 'safety_blocked'
   safetyMessage: string
+  safetyType: 'crisis' | 'content_policy'
   resources: SafetyResource[]
 }
 

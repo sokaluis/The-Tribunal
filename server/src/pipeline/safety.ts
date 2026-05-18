@@ -38,3 +38,6 @@ export const SAFETY_MESSAGE =
   "We noticed your submission touches on something serious, and The Tribunal is not the right place for it. " +
   "If you or someone you know is struggling, please reach out to a crisis resource or trusted person. " +
   "You don't have to face this alone."
+
+export const CONTENT_POLICY_MESSAGE =
+  "The Tribunal can't hear this case. Submissions that promote hatred, violence against groups, or harmful extremist content fall outside what this court adjudicates."

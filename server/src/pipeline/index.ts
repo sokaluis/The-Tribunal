@@ -2,7 +2,7 @@ import { db } from '../db/index.js'
 import { trials, trialTurns, panelJudgments } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 import { getTribunal } from '../tribunals.js'
-import { quickKeywordCheck, SAFETY_MESSAGE, SAFETY_RESOURCES } from './safety.js'
+import { quickKeywordCheck, SAFETY_MESSAGE, CONTENT_POLICY_MESSAGE, SAFETY_RESOURCES } from './safety.js'
 import {
   runNormalize,
   runProsecution,
@@ -60,6 +60,7 @@ export async function runPipeline(trialId: string): Promise<void> {
       await db.update(trials).set({
         status: 'safety_blocked',
         safetyMessage: SAFETY_MESSAGE,
+        safetyType: 'crisis',
         completedAt: now(),
       }).where(eq(trials.id, trialId))
       return
@@ -72,7 +73,8 @@ export async function runPipeline(trialId: string): Promise<void> {
     if (!normalizeResult.isSafe) {
       await db.update(trials).set({
         status: 'safety_blocked',
-        safetyMessage: SAFETY_MESSAGE,
+        safetyMessage: CONTENT_POLICY_MESSAGE,
+        safetyType: 'content_policy',
         modelUsed: normalizeResult.model,
         pipelineVersion: PIPELINE_VERSION,
         rawLlmResponses: JSON.stringify(rawResponses),
