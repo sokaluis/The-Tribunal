@@ -58,6 +58,7 @@ export interface TrialResult {
   sentence: string
   shareCard: ShareCard
   appealOfId: string | null
+  isPublic: boolean
 }
 
 export interface TrialPendingResponse {

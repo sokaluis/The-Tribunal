@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-export function usePublish() {
-  const [published, setPublished] = useState(false)
+export function usePublish(initialPublished = false) {
+  const [published, setPublished] = useState(initialPublished)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

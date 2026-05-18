@@ -88,16 +88,23 @@ export function GalleryPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
           {verdicts.map((v) => (
             <div key={v.id} className="animate-fade-in-up">
-              <VerdictCard
-                shareCard={v.shareCard}
-                score={v.score}
-                scoreLabel={v.scoreLabel}
-                tribunalType={v.tribunalType}
-                caseText={v.caseText}
-              />
-              <div className="mt-3 px-1 flex items-center justify-between">
+              <Link to={`/trial/${v.id}`} className="block rounded-2xl transition-opacity hover:opacity-90">
+                <VerdictCard
+                  shareCard={v.shareCard}
+                  score={v.score}
+                  scoreLabel={v.scoreLabel}
+                  tribunalType={v.tribunalType}
+                  caseText={v.caseText}
+                />
+              </Link>
+              <div className="mt-3 px-1 flex items-center justify-between gap-2">
                 <p className="text-xs text-[#6b7280] italic max-w-[200px] truncate">"{v.caseSummary}"</p>
-                <span className="text-xs text-[#4b5563] capitalize">{v.tribunalType}</span>
+                <Link
+                  to={`/trial/${v.id}`}
+                  className="text-xs text-[#d4a853] hover:text-[#e8c477] transition-colors shrink-0"
+                >
+                  View full case →
+                </Link>
               </div>
               <div className="mt-2 px-1">
                 <ShareButtons verdict={v} />

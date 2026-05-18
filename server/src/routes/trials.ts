@@ -6,6 +6,7 @@ import { trials, trialTurns, panelJudgments } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 import { TRIBUNAL_IDS } from '../tribunals.js'
 import { runPipeline, SAFETY_RESOURCES } from '../pipeline/index.js'
+import { getSampleTrial } from '../samples.js'
 import type { TrialResponse } from '../types.js'
 
 const router = Router()
@@ -86,6 +87,7 @@ function buildTrialResponse(
     sentence: trial.sentence ?? '',
     shareCard,
     appealOfId: trial.appealOfId,
+    isPublic: trial.isPublic === 1,
   }
 }
 
@@ -125,6 +127,12 @@ router.post('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
+    const sample = getSampleTrial(req.params.id)
+    if (sample) {
+      res.json(sample)
+      return
+    }
+
     const [trial] = await db.select().from(trials).where(eq(trials.id, req.params.id)).limit(1)
     if (!trial) {
       res.status(404).json({ error: 'Trial not found' })

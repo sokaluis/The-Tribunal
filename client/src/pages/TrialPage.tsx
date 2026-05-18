@@ -4,7 +4,7 @@ import { useTrial } from '../hooks/useTrial'
 import { usePublish } from '../hooks/usePublish'
 import { TrialProgress } from '../components/TrialProgress'
 import { VerdictCard } from '../components/VerdictCard'
-import { ArgumentsSection, PanelSection, RulingSection } from '../components/TrialTranscript'
+import { CaseSection, ArgumentsSection, PanelSection, RulingSection } from '../components/TrialTranscript'
 import { ShareButtons } from '../components/ShareButtons'
 import { AppealSelector } from '../components/AppealSelector'
 import { SafetyBlockedView } from '../components/SafetyBlockedView'
@@ -66,25 +66,53 @@ function VerdictHero({ trial }: { trial: TrialResult }) {
   )
 }
 
-function PublishButton({ trialId }: { trialId: string }) {
-  const { publish, published, loading, error } = usePublish()
+function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boolean }) {
+  const { publish, published, loading, error } = usePublish(isPublic)
+  const [confirming, setConfirming] = useState(false)
 
   if (published) {
     return (
       <span className="text-xs text-[#16a34a] flex items-center gap-1.5">
-        <span>✓</span> Published to gallery
+        <span>✓</span> Published to Community Cases
       </span>
+    )
+  }
+
+  if (confirming) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-xs text-[#9ca3af] text-center max-w-[220px]">
+          This will make your case publicly visible in Community Cases.
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { publish(trialId); setConfirming(false) }}
+            disabled={loading}
+            className="text-xs text-[#16a34a] hover:text-[#22c55e] transition-colors border border-[rgba(22,163,74,0.3)] rounded-lg px-3 py-1.5 hover:border-[rgba(22,163,74,0.5)] cursor-pointer disabled:opacity-50"
+          >
+            {loading ? 'Publishing...' : 'Confirm'}
+          </button>
+          <button
+            onClick={() => setConfirming(false)}
+            disabled={loading}
+            className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors border border-[#1e1e2e] rounded-lg px-3 py-1.5 hover:border-[#2a2a3e] cursor-pointer disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        </div>
+        {error && <p className="text-[10px] text-[#dc2626]">{error}</p>}
+      </div>
     )
   }
 
   return (
     <div className="flex flex-col items-center gap-1">
       <button
-        onClick={() => publish(trialId)}
+        onClick={() => setConfirming(true)}
         disabled={loading}
         className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors border border-[#1e1e2e] rounded-lg px-4 py-2 hover:border-[#2a2a3e] cursor-pointer disabled:opacity-50"
       >
-        {loading ? 'Publishing...' : '🌐 Publish to gallery'}
+        🌐 Publish to Community Cases
       </button>
       {error && <p className="text-[10px] text-[#dc2626]">{error}</p>}
     </div>
@@ -153,21 +181,33 @@ export function TrialPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-24">
-      <div className="pt-6 mb-2">
+      <div className="pt-6 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
         <Link to="/" className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors">
           ← New trial
         </Link>
+        <span className="text-[#2a2a3e]">·</span>
+        <Link to="/gallery" className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors">
+          Community Cases
+        </Link>
         {trial.appealOfId && (
-          <span className="ml-3 text-xs text-[#4b5563]">
-            Appeal of{' '}
-            <Link to={`/trial/${trial.appealOfId}`} className="text-[#6b7280] hover:text-[#9ca3af] underline">
-              original case
-            </Link>
-          </span>
+          <>
+            <span className="text-[#2a2a3e]">·</span>
+            <span className="text-xs text-[#4b5563]">
+              Appeal of{' '}
+              <Link to={`/trial/${trial.appealOfId}`} className="text-[#6b7280] hover:text-[#9ca3af] underline">
+                original case
+              </Link>
+            </span>
+          </>
         )}
       </div>
 
       <VerdictHero trial={trial} />
+
+      <Divider />
+      <TrialSection>
+        <CaseSection trial={trial} />
+      </TrialSection>
 
       <Divider />
       <TrialSection>
@@ -181,35 +221,53 @@ export function TrialPage() {
         />
         <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
           <ShareButtons verdict={trial} />
-          <PublishButton trialId={trial.id} />
+          {!trial.id.startsWith('sample_') && (
+            <PublishButton trialId={trial.id} isPublic={trial.isPublic} />
+          )}
         </div>
       </TrialSection>
 
-      <Divider />
-      <TrialSection>
-        <RulingSection trial={trial} />
-      </TrialSection>
+      {trial.finalReasoning && (
+        <>
+          <Divider />
+          <TrialSection>
+            <RulingSection trial={trial} />
+          </TrialSection>
+        </>
+      )}
 
-      <Divider />
-      <TrialSection>
-        <PanelSection trial={trial} />
-      </TrialSection>
+      {trial.panelJudgments.length > 0 && (
+        <>
+          <Divider />
+          <TrialSection>
+            <PanelSection trial={trial} />
+          </TrialSection>
+        </>
+      )}
 
-      <Divider />
-      <TrialSection>
-        <ArgumentsSection trial={trial} />
-      </TrialSection>
+      {(trial.prosecution.argument || trial.defense.argument) && (
+        <>
+          <Divider />
+          <TrialSection>
+            <ArgumentsSection trial={trial} />
+          </TrialSection>
+        </>
+      )}
 
-      <Divider />
-      <TrialSection>
-        {tribunals.length > 0 && (
-          <AppealSelector
-            trialId={trial.id}
-            currentTribunalType={trial.tribunalType}
-            tribunals={tribunals}
-          />
-        )}
-      </TrialSection>
+      {!trial.id.startsWith('sample_') && (
+        <>
+          <Divider />
+          <TrialSection>
+            {tribunals.length > 0 && (
+              <AppealSelector
+                trialId={trial.id}
+                currentTribunalType={trial.tribunalType}
+                tribunals={tribunals}
+              />
+            )}
+          </TrialSection>
+        </>
+      )}
     </div>
   )
 }

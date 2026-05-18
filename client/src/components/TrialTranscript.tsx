@@ -28,6 +28,7 @@ function ArgumentCard({ title, argument, accentColor }: { title: string; argumen
 }
 
 export function ArgumentsSection({ trial }: { trial: TrialResult }) {
+  if (!trial.prosecution.argument && !trial.defense.argument) return null
   return (
     <section>
       <SectionLabel>The Arguments</SectionLabel>
@@ -61,7 +62,19 @@ export function PanelSection({ trial }: { trial: TrialResult }) {
   )
 }
 
+export function CaseSection({ trial }: { trial: TrialResult }) {
+  return (
+    <section>
+      <SectionLabel>The Case</SectionLabel>
+      <div className="mx-auto max-w-2xl rounded-xl border border-[#1e1e2e] bg-[#14141f] p-6">
+        <p className="text-sm text-[#d4cbb8] leading-relaxed whitespace-pre-wrap">{trial.caseText}</p>
+      </div>
+    </section>
+  )
+}
+
 export function RulingSection({ trial }: { trial: TrialResult }) {
+  if (!trial.finalReasoning) return null
   return (
     <section>
       <SectionLabel>The Ruling</SectionLabel>
