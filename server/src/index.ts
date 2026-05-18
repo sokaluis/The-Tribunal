@@ -22,6 +22,7 @@ const MIGRATION_SQL = `
     sentence TEXT,
     share_card_json TEXT,
     safety_message TEXT,
+    safety_type TEXT,
     appeal_of_id TEXT REFERENCES trials(id),
     is_public INTEGER NOT NULL DEFAULT 0,
     model_used TEXT,
