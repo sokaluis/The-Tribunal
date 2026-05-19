@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { AppealGround } from '../types'
+import { getTrialClaimToken, saveTrialClaim } from '../utils/trialClaims'
 
 interface AppealParams {
   trialId: string
@@ -16,9 +17,14 @@ export function useAppeal() {
     setLoading(true)
     setError(null)
     try {
+      const claimToken = getTrialClaimToken(trialId)
       const res = await fetch(`/api/trials/${trialId}/appeal`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(claimToken ? { 'X-Trial-Claim-Token': claimToken } : {}),
+        },
         body: JSON.stringify({ tribunalType, appealGround, appealText }),
       })
       const data = await res.json()
@@ -26,7 +32,9 @@ export function useAppeal() {
         setError(data.error || 'Failed to file appeal')
         return null
       }
-      return data as { id: string }
+      const result = data as { id: string; claimToken?: string }
+      saveTrialClaim(result.id, result.claimToken)
+      return { id: result.id }
     } catch {
       setError('Network error. Please try again.')
       return null

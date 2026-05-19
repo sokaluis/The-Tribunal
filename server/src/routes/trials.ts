@@ -9,6 +9,14 @@ import { runPipeline, SAFETY_RESOURCES } from '../pipeline/index.js'
 import { getSampleTrial } from '../samples.js'
 import type { TrialResponse } from '../types.js'
 import { APPEAL_GROUNDS } from '../types.js'
+import {
+  generateSecretToken,
+  getClaimToken,
+  getCurrentUser,
+  hashToken,
+  verifyTokenHash,
+  type PublicUser,
+} from '../auth.js'
 
 const router = Router()
 
@@ -26,7 +34,8 @@ const AppealSchema = z.object({
 function buildTrialResponse(
   trial: typeof trials.$inferSelect,
   panelRows: typeof panelJudgments.$inferSelect[],
-  turns: typeof trialTurns.$inferSelect[]
+  turns: typeof trialTurns.$inferSelect[],
+  options: { exposeAppealOfId?: boolean } = {}
 ): TrialResponse {
   if (trial.status === 'pending' || trial.status === 'processing') {
     return {
@@ -89,15 +98,34 @@ function buildTrialResponse(
     finalReasoning: trial.finalReasoning ?? '',
     sentence: trial.sentence ?? '',
     shareCard,
-    appealOfId: trial.appealOfId,
+    appealOfId: options.exposeAppealOfId === false ? null : trial.appealOfId,
     appealGround: trial.appealGround as typeof APPEAL_GROUNDS[number] | null,
     appealText: trial.appealText ?? null,
     isPublic: trial.isPublic === 1,
   }
 }
 
+function canAccessTrial(
+  trial: typeof trials.$inferSelect,
+  user: PublicUser | null,
+  claimToken: string | undefined
+): boolean {
+  return trial.isPublic === 1 ||
+    (!!user && trial.userId === user.id) ||
+    verifyTokenHash(claimToken, trial.claimTokenHash)
+}
+
+function canMutateTrial(
+  trial: typeof trials.$inferSelect,
+  user: PublicUser | null,
+  claimToken: string | undefined
+): boolean {
+  return (!!user && trial.userId === user.id) || verifyTokenHash(claimToken, trial.claimTokenHash)
+}
+
 router.post('/', async (req, res) => {
   try {
+    const user = await getCurrentUser(req)
     const body = CreateTrialSchema.safeParse(req.body)
     if (!body.success) {
       res.status(400).json({ error: body.error.issues[0]?.message ?? 'Invalid input' })
@@ -107,9 +135,12 @@ router.post('/', async (req, res) => {
     const { caseText, tribunalType } = body.data
     const id = nanoid(12)
     const createdAt = new Date().toISOString()
+    const claimToken = user ? null : generateSecretToken()
 
     await db.insert(trials).values({
       id,
+      userId: user?.id ?? null,
+      claimTokenHash: claimToken ? hashToken(claimToken) : null,
       caseText,
       tribunalType,
       status: 'pending',
@@ -123,7 +154,7 @@ router.post('/', async (req, res) => {
       })
     })
 
-    res.status(202).json({ id, status: 'pending' })
+    res.status(202).json({ id, status: 'pending', ...(claimToken ? { claimToken } : {}) })
   } catch (err) {
     console.error('[POST /trials]', err)
     res.status(500).json({ error: 'Failed to create trial' })
@@ -132,6 +163,8 @@ router.post('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
+    const user = await getCurrentUser(req)
+    const claimToken = getClaimToken(req)
     const sample = getSampleTrial(req.params.id)
     if (sample) {
       res.json(sample)
@@ -140,6 +173,10 @@ router.get('/:id', async (req, res) => {
 
     const [trial] = await db.select().from(trials).where(eq(trials.id, req.params.id)).limit(1)
     if (!trial) {
+      res.status(404).json({ error: 'Trial not found' })
+      return
+    }
+    if (!canAccessTrial(trial, user, claimToken)) {
       res.status(404).json({ error: 'Trial not found' })
       return
     }
@@ -153,7 +190,13 @@ router.get('/:id', async (req, res) => {
       ])
     }
 
-    const response = buildTrialResponse(trial, panelRows, turns)
+    let exposeAppealOfId = true
+    if (trial.appealOfId) {
+      const [original] = await db.select().from(trials).where(eq(trials.id, trial.appealOfId)).limit(1)
+      exposeAppealOfId = !!original && canAccessTrial(original, user, claimToken)
+    }
+
+    const response = buildTrialResponse(trial, panelRows, turns, { exposeAppealOfId })
     res.json(response)
   } catch (err) {
     console.error('[GET /trials/:id]', err)
@@ -163,9 +206,24 @@ router.get('/:id', async (req, res) => {
 
 router.post('/:id/appeal', async (req, res) => {
   try {
+    const user = await getCurrentUser(req)
+    const claimToken = getClaimToken(req)
     const [original] = await db.select().from(trials).where(eq(trials.id, req.params.id)).limit(1)
     if (!original) {
       res.status(404).json({ error: 'Original trial not found' })
+      return
+    }
+    if (!canAccessTrial(original, user, claimToken)) {
+      res.status(404).json({ error: 'Original trial not found' })
+      return
+    }
+    if (original.status !== 'completed') {
+      res.status(400).json({ error: 'Only completed trials can be appealed' })
+      return
+    }
+    const hasOriginalClaim = verifyTokenHash(claimToken, original.claimTokenHash)
+    if (original.isPublic === 1 && !user && !hasOriginalClaim) {
+      res.status(401).json({ error: 'Sign in to appeal public trials' })
       return
     }
 
@@ -179,9 +237,12 @@ router.post('/:id/appeal', async (req, res) => {
 
     const id = nanoid(12)
     const createdAt = new Date().toISOString()
+    const newClaimToken = user ? null : generateSecretToken()
 
     await db.insert(trials).values({
       id,
+      userId: user?.id ?? null,
+      claimTokenHash: newClaimToken ? hashToken(newClaimToken) : null,
       caseText: original.caseText,
       tribunalType,
       status: 'pending',
@@ -198,7 +259,7 @@ router.post('/:id/appeal', async (req, res) => {
       })
     })
 
-    res.status(202).json({ id, status: 'pending' })
+    res.status(202).json({ id, status: 'pending', ...(newClaimToken ? { claimToken: newClaimToken } : {}) })
   } catch (err) {
     console.error('[POST /trials/:id/appeal]', err)
     res.status(500).json({ error: 'Failed to create appeal' })
@@ -207,6 +268,8 @@ router.post('/:id/appeal', async (req, res) => {
 
 router.post('/:id/publish', async (req, res) => {
   try {
+    const user = await getCurrentUser(req)
+    const claimToken = getClaimToken(req)
     const [trial] = await db.select().from(trials).where(eq(trials.id, req.params.id)).limit(1)
     if (!trial) {
       res.status(404).json({ error: 'Trial not found' })
@@ -214,6 +277,10 @@ router.post('/:id/publish', async (req, res) => {
     }
     if (trial.status !== 'completed') {
       res.status(400).json({ error: 'Only completed trials can be published' })
+      return
+    }
+    if (!canMutateTrial(trial, user, claimToken)) {
+      res.status(404).json({ error: 'Trial not found' })
       return
     }
     await db.update(trials).set({ isPublic: 1 }).where(eq(trials.id, trial.id))

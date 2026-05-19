@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -7,6 +8,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const isHome = location.pathname === '/'
+  const { user, loading, signIn, signOut } = useAuth()
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139,92,246,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(212,168,83,0.08) 0%, transparent 50%), #0a0a0f' }}>
@@ -25,6 +27,24 @@ export function Layout({ children }: LayoutProps) {
             <Link to="/gallery" className="text-[#9ca3af] hover:text-[#f0ead6] transition-colors">
               Gallery
             </Link>
+            {loading ? (
+              <span className="text-[#4b5563]">Checking session...</span>
+            ) : user ? (
+              <button
+                onClick={signOut}
+                className="text-[#9ca3af] hover:text-[#f0ead6] transition-colors cursor-pointer"
+                title={user.email}
+              >
+                Sign out {user.displayName.split(' ')[0]}
+              </button>
+            ) : (
+              <button
+                onClick={signIn}
+                className="text-[#d4a853] hover:text-[#e8c477] transition-colors cursor-pointer"
+              >
+                Sign in
+              </button>
+            )}
           </nav>
         </div>
       </header>

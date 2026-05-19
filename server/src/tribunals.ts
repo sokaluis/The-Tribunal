@@ -24,8 +24,11 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'Judges ethical choices using philosophical frameworks.',
     icon: '⚖',
     tone: 'philosophical, rigorous, slightly solemn',
-    scoreLabel: 'Immorality Score',
+    scoreLabel: 'Immorality',
     possibleVerdicts: [
+      'No moral fault',
+      'Morally permissible',
+      'Kind, if ordinary',
       'Guilty',
       'Not Guilty',
       'Guilty, with mitigating circumstances',
@@ -66,13 +69,19 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'Judges interpersonal behavior, communication, and emotional responsibility.',
     icon: '💬',
     tone: 'empathetic but direct, emotionally intelligent, occasionally wry',
-    scoreLabel: 'Asshole Score',
+    scoreLabel: 'Asshole',
     possibleVerdicts: [
+      'Barely a case',
+      'Wholesome',
+      'Awkward but harmless',
       'Emotionally guilty',
       'Not guilty',
-      'Bad communication, understandable motive',
+      'Bad communication',
       'Needs apology',
       'Needs boundaries',
+      'Needs therapy',
+      'Needs to grow up',
+      'Needs to grow a pair',
     ],
     panelAgents: [
       {
@@ -108,14 +117,17 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'Judges startup ideas, creative concepts, and product ideas.',
     icon: '💡',
     tone: 'incisive, constructive, occasionally savage',
-    scoreLabel: 'Concept Sillyness Score',
+    scoreLabel: 'Concept Sillyness',
     possibleVerdicts: [
       'Promising',
+      'Viable with caveats',
+      'No fatal flaw',
       'Overcomplicated',
       'Needs sharper positioning',
       'Fun but shallow',
       'Strong concept, weak execution',
       'Guilty of founder delusion',
+      'Silly'
     ],
     panelAgents: [
       {
@@ -151,14 +163,19 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'Judges hot takes, arguments, beliefs, and opinions.',
     icon: '🔥',
     tone: 'intellectually rigorous, sharp, occasionally Socratic',
-    scoreLabel: 'Argument Weakness Score',
+    scoreLabel: 'Argument Weakness',
     possibleVerdicts: [
       'Defensible',
+      'Reasonable, with caveats',
+      'Sound argument',
       'Underargued',
       'Spicy but shallow',
-      'Mostly correct, badly framed',
+      'Mostly correct',
       'False but interesting',
       'Needs nuance',
+      'Dumb',
+      'Do not say aloud',
+      'Needs clarification',
     ],
     panelAgents: [
       {
@@ -194,14 +211,18 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'A harsher, more comedic court. Still insightful, but more brutal.',
     icon: '😤',
     tone: 'comedic, sharp, brutally honest, theatrical',
-    scoreLabel: 'Cursedness Score',
+    scoreLabel: 'Cursedness',
     possibleVerdicts: [
+      'Looking good',
+      'Wholesome',
       'Guilty',
-      'Not guilty, somehow',
+      'Somehow not guilty',
       'Legal but cursed',
       'Iconic but unethical',
-      'Morally bankrupt, aesthetically coherent',
-      'Needs immediate self-reflection',
+      'Morally bankrupt',
+      'Fucked up',
+      'Dude, WTF?',
+      'LOL?',
     ],
     panelAgents: [
       {
@@ -233,7 +254,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
 }
 
 export const SCORE_SCALE_HINT =
-  'Score is 0-100 where 0 is best for the person who submitted the case and 100 is worst for them (higher = more culpable, harmful, flawed, or cursed).'
+  'Score is 0-100 where 0 is best for the person who submitted the case and 100 is worst for them (higher = more culpable, harmful, flawed, or cursed). Use 0-19 for no meaningful fault, harmless, kind, praiseworthy, or normal behavior; 20-39 for minor awkwardness; 40-69 for mixed or meaningfully flawed cases; and 70-100 for serious fault, harm, bad reasoning, high risk, or true cursedness.'
 
 export const APPEAL_SCORE_SCALE_HINT =
   'Score is 0-100 where 0 is best for the appellant (appeal succeeds) and 100 is worst for the appellant (appeal denied).'

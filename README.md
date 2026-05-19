@@ -14,7 +14,8 @@ Completed trials can be appealed: the appellant picks a new tribunal, states gro
 
 - Five tribunal types: Moral, Relationship, Idea, Opinion, Roast
 - 4-call LLM pipeline (normalize, parallel prosecution/defense, panel, final verdict)
-- **Appeals** — appellate hearings in a different tribunal with selectable grounds and optional explanation; prompts include the original verdict, charge, reasoning, and sentence
+- **Appeals** — appellate hearings in any tribunal with selectable grounds and optional explanation; prompts include the original verdict, charge, reasoning, and sentence
+- Google OAuth accounts with private trial ownership, anonymous claim tokens, and public publishing
 - Verdict card with charge, recognized/rejected blocks, and a full-width sentence footer; horizontal/vertical image download
 - Public gallery of verdicts (plus built-in sample cases)
 - Two-tier safety filter (keyword pre-check + LLM review) with context-appropriate blocked-trial UI
@@ -48,6 +49,9 @@ OPENROUTER_MODEL=openai/gpt-4o-mini
 APP_BASE_URL=http://localhost:5173
 OPENROUTER_SITE_URL=http://localhost:5173
 OPENROUTER_APP_NAME=The Tribunal
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
 ```
 
 2. Install dependencies:
@@ -75,7 +79,7 @@ Open http://localhost:5173
 
 ### Resetting the database
 
-The app does not run incremental migrations on existing databases. Schema changes only apply to **new** `trials` tables. To start fresh during development:
+The app runs lightweight startup schema compatibility checks. To fully reset local development data:
 
 1. Stop the server (it locks `server/data/tribunal.db`).
 2. Delete `server/data/tribunal.db` and any `tribunal.db-shm` / `tribunal.db-wal` files.
@@ -90,6 +94,9 @@ The app does not run incremental migrations on existing databases. Schema change
 | `APP_BASE_URL` | No | Base URL for CORS (default: `http://localhost:5173`) |
 | `OPENROUTER_SITE_URL` | No | Sent to OpenRouter as site URL |
 | `OPENROUTER_APP_NAME` | No | App name sent to OpenRouter |
+| `GOOGLE_CLIENT_ID` | Yes for sign-in | Google OAuth client id |
+| `GOOGLE_CLIENT_SECRET` | Yes for sign-in | Google OAuth client secret |
+| `GOOGLE_REDIRECT_URI` | Yes for sign-in | Google OAuth callback URL |
 
 ## Architecture
 
@@ -124,7 +131,7 @@ The same stages run for initial trials and appeals. When `appeal_of_id` is set, 
 1. **Normalize** — Clerk summarizes the case and flags unsafe content (`isSafe`). Temperature 0.3.
 2. **Prosecution + defense** — Run in parallel. In appeal mode, prosecution defends the original ruling; defense argues the appeal has merit. Temperature 0.9.
 3. **Panel** — Four tribunal-specific judges each return a judgment, leaning, and key principle. In appeal mode, leanings reflect appeal merit. Temperature 0.85.
-4. **Final verdict** — Judge delivers a verdict and share card. Appeal mode uses appellate outcomes (e.g. Appeal denied, Appeal granted, Sentence reduced). Temperature 0.8.
+4. **Final verdict** — Judge delivers a verdict and share card. Appeal mode uses appellate outcomes (e.g. Appeal denied, Appeal granted, Sentence reduced). Temperature 0.65.
 
 Prompt text lives in `server/src/pipeline/prompts.ts`. All calls use OpenRouter with `response_format: { type: 'json_object' }` and Zod validation in `steps.ts`.
 
@@ -150,6 +157,13 @@ Before step 1, a regex keyword check (`quickKeywordCheck` in `safety.ts`) catche
 | `POST` | `/api/trials/:id/publish` | Make verdict public in gallery |
 | `GET` | `/api/gallery` | Public verdicts (`?sort=latest\|condemned\|vindicated\|contested`) |
 | `GET` | `/api/tribunals` | Tribunal type definitions |
+| `GET` | `/api/auth/google/start` | Start Google sign-in |
+| `GET` | `/api/auth/google/callback` | Google OAuth callback |
+| `GET` | `/api/auth/me` | Current signed-in user |
+| `POST` | `/api/auth/logout` | End current session |
+| `POST` | `/api/auth/claim-trials` | Claim anonymous local trials after sign-in |
+
+Unpublished trials require either the owning session cookie or the matching `X-Trial-Claim-Token` header. Public trials are readable without authentication.
 
 ## Tribunal types
 
@@ -182,7 +196,7 @@ Gallery sort modes (`?sort=`):
 
 ## Appeals
 
-An appeal reuses the existing pipeline in appeal mode. The appellant must choose a **different** tribunal, select one appeal ground, and may add supporting text (up to 1000 characters; strongly encouraged in the UI).
+An appeal reuses the existing pipeline in appeal mode. The appellant chooses any tribunal, including the original one, selects one appeal ground, and may add supporting text (up to 1000 characters; strongly encouraged in the UI).
 
 ### Appeal grounds
 
@@ -207,7 +221,7 @@ An appeal reuses the existing pipeline in appeal mode. The appellant must choose
 }
 ```
 
-Returns `{ id, status: "pending" }` for the new appeal trial. The original trial must be `completed`. `tribunalType` must differ from the original.
+Returns `{ id, status: "pending" }` for signed-in users, or `{ id, status: "pending", claimToken }` for anonymous owners appealing with a claim token. The original trial must be accessible to the requester.
 
 Completed appeal results include `appealOfId`, `appealGround`, and `appealText`. The trial page shows an appellate banner and links back to the original verdict.
 

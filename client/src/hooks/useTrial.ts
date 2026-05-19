@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { TrialResponse } from '../types'
+import { getTrialClaimToken } from '../utils/trialClaims'
 
 const TERMINAL_STATUSES = new Set(['completed', 'failed', 'safety_blocked'])
 const POLL_INTERVAL = 2000
@@ -12,7 +13,11 @@ export function useTrial(id: string | undefined) {
   const fetchTrial = useCallback(async (): Promise<boolean> => {
     if (!id) return true
     try {
-      const res = await fetch(`/api/trials/${id}`)
+      const claimToken = getTrialClaimToken(id)
+      const res = await fetch(`/api/trials/${id}`, {
+        credentials: 'include',
+        headers: claimToken ? { 'X-Trial-Claim-Token': claimToken } : undefined,
+      })
       if (res.status === 404) {
         setError('Trial not found')
         setLoading(false)

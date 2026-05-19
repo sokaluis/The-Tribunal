@@ -4,11 +4,50 @@ import cors from 'cors'
 import trialsRouter from './routes/trials.js'
 import galleryRouter from './routes/gallery.js'
 import tribunalsRouter from './routes/tribunals.js'
+import authRouter from './routes/auth.js'
 import { libsqlClient } from './db/index.js'
 
 const MIGRATION_SQL = `
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    display_name TEXT NOT NULL,
+    profile_slug TEXT NOT NULL UNIQUE,
+    avatar_url TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS oauth_accounts (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    provider TEXT NOT NULL,
+    provider_account_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_accounts_provider_account
+    ON oauth_accounts(provider, provider_account_id);
+  CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+  CREATE TABLE IF NOT EXISTS oauth_states (
+    id TEXT PRIMARY KEY,
+    code_verifier TEXT NOT NULL,
+    return_to TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_oauth_states_expires_at ON oauth_states(expires_at);
   CREATE TABLE IF NOT EXISTS trials (
     id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    claim_token_hash TEXT,
     case_text TEXT NOT NULL,
     tribunal_type TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
@@ -59,8 +98,33 @@ const MIGRATION_SQL = `
   CREATE INDEX IF NOT EXISTS idx_panel_judgments_trial_id ON panel_judgments(trial_id);
 `
 
+async function ensureColumn(tableName: string, columnName: string, definition: string) {
+  const result = await libsqlClient.execute(`PRAGMA table_info(${tableName})`)
+  const hasColumn = result.rows.some((row) => row.name === columnName)
+  if (!hasColumn) {
+    await libsqlClient.execute(`ALTER TABLE ${tableName} ADD COLUMN ${definition}`)
+  }
+}
+
+async function runCompatibilityMigrations() {
+  await ensureColumn('trials', 'user_id', 'user_id TEXT REFERENCES users(id)')
+  await ensureColumn('trials', 'claim_token_hash', 'claim_token_hash TEXT')
+  await libsqlClient.execute(`CREATE INDEX IF NOT EXISTS idx_trials_user_id ON trials(user_id)`)
+  await libsqlClient.execute(`CREATE INDEX IF NOT EXISTS idx_trials_claim_token_hash ON trials(claim_token_hash)`)
+
+  await libsqlClient.execute(`
+    UPDATE trials
+    SET is_public = 1
+    WHERE status = 'completed'
+      AND is_public = 0
+      AND user_id IS NULL
+      AND claim_token_hash IS NULL
+  `)
+}
+
 async function bootstrap() {
   await libsqlClient.executeMultiple(MIGRATION_SQL)
+  await runCompatibilityMigrations()
   console.log('[DB] Migration complete.')
 
   const app = express()
@@ -73,6 +137,7 @@ async function bootstrap() {
 
   app.use(express.json({ limit: '10kb' }))
 
+  app.use('/api/auth', authRouter)
   app.use('/api/trials', trialsRouter)
   app.use('/api/gallery', galleryRouter)
   app.use('/api/tribunals', tribunalsRouter)

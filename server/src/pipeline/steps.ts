@@ -251,7 +251,7 @@ export async function runFinalVerdict(
 
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
-  ], { temperature: 0.8, maxTokens: 900 })
+  ], { temperature: 0.65, maxTokens: 900 })
 
   const parsed = FinalVerdictSchema.parse(parseJson(content))
 

@@ -3,6 +3,12 @@ import { SCORE_SCALE_HINT, APPEAL_SCORE_SCALE_HINT } from '../tribunals.js'
 import type { AppealContext } from './appeal-context.js'
 import { formatAppealBlock } from './appeal-context.js'
 
+const FAIRNESS_STANDARD = `Fairness standard:
+- If the submitted action is harmless, kind, normal, praiseworthy, or too minor to criticize, say so plainly.
+- Do not manufacture wrongdoing, hidden malice, manipulation, pathology, moral failure, or relationship harm without evidence in the submission.
+- Theatrical does not mean unfair. Be witty, specific, and proportional.
+- Criticize only what is actually present. It is acceptable and often correct to find no case to answer.`
+
 export function normalizePrompt(caseText: string, tribunal: TribunalType, appealContext: AppealContext | null): string {
   const appealBlock = appealContext ? `\n${formatAppealBlock(appealContext)}\n` : ''
   const contextNote = appealContext
@@ -38,11 +44,8 @@ export function prosecutionPrompt(
     return `You are the prosecutor in ${tribunal.name}, a whacky, theatrical appellate AI court. 
     This is an APPEAL hearing. The appellant is challenging a previous verdict. 
     Your job is to argue why the original ruling should STAND, or why the appeal fails. 
-    Be sharp, specific, and theatrical. 
-    Focus on the weakness of the appeal arguments, 
-    but also shame and mock the appellant for their behavior, if needed.
-    Don't be afraid to be mean, cruel, and sarcastic.
-    If the appellant is clearly in the wrong, be harsh and unforgiving.
+    Be sharp, specific, theatrical, and proportional.
+    Focus on the weakness of the appeal arguments. Do not invent flaws in the appeal just because this is a court.
 
 Tribunal tone: ${tribunal.tone}
 ${formatAppealBlock(appealContext)}
@@ -60,21 +63,21 @@ Return only valid JSON. No markdown fences.`
   }
 
   return `You are the prosecutor in ${tribunal.name}, a whacky, theatrical AI court. 
-  Your job is to make the strongest case against the submitted behavior, opinion, or idea. 
-  Be sharp, specific, and theatrical.
-  Don't be afraid to be mean, cruel, and sarcastic.
-  If the appellant is clearly in the wrong, be harsh and unforgiving.
+  Your job is to identify the strongest fair criticism of the submitted behavior, opinion, or idea, if one exists. 
+  If the case is harmless, kind, normal, praiseworthy, or too minor to criticize, acknowledge that the prosecution has little or no case.
+  Be sharp, specific, theatrical, and proportional. Do not invent a charge just because this is a court.
 
 Tribunal tone: ${tribunal.tone}
+${FAIRNESS_STANDARD}
 
 Case summary: """${caseSummary}"""
 Full submission: """${caseText}"""
 
 Return a JSON object with this exact structure:
 {
-  "charge": "The formal charge in 10-15 words. Theatrical but specific. Example: 'Weaponizing busyness as a substitute for emotional honesty.'",
-  "argument": "The prosecution's argument. Sharp, specific, 2-4 sentences. Max 110 words. No bullet points.",
-  "strongestPoint": "The single most damning point in one sentence."
+  "charge": "The formal charge in 10-15 words. If there is no real fault, use an acquittal-compatible charge like 'No charge worth filing' or 'Suspicion of being basically fine.'",
+  "argument": "The prosecution's fair argument. If there is little or no case, say that plainly. Sharp, specific, 2-4 sentences. Max 110 words. No bullet points.",
+  "strongestPoint": "The single strongest fair criticism, or the clearest reason there is no real case, in one sentence."
 }
 
 Return only valid JSON. No markdown fences.`
@@ -91,8 +94,7 @@ export function defensePrompt(
     This is an APPEAL hearing. Your job is to argue why the appeal has merit based on the appellant's stated grounds. 
     Make the strongest case for why the original ruling was flawed, unjust, or deserves reconsideration. 
     Be honest; if the appeal is weak, acknowledge it while finding whatever genuine argument exists.
-    Don't be afraid to be mean, cruel, and sarcastic.
-    If the appellant is clearly in the wrong, be harsh and unforgiving.
+    Be charitable, specific, theatrical, and proportional.
 
 Tribunal tone: ${tribunal.tone}
 ${formatAppealBlock(appealContext)}
@@ -113,10 +115,11 @@ Return only valid JSON. No markdown fences.`
   Your job is to make the strongest charitable case for the person. 
   Do not deny obvious problems. Find genuine context, mitigating circumstances, and the most favorable interpretation. 
   Be honest; if the case is indefensible, say so while finding whatever genuine defense exists.
-  Don't be afraid to be mean, cruel, and sarcastic.
-  If the appellant is clearly in the wrong, be harsh and unforgiving.
+  If the person did nothing meaningfully wrong, say so directly and defend that conclusion.
+  Be charitable, specific, theatrical, and proportional.
 
 Tribunal tone: ${tribunal.tone}
+${FAIRNESS_STANDARD}
 
 Case summary: """${caseSummary}"""
 Full submission: """${caseText}"""
@@ -153,10 +156,10 @@ export function panelPrompt(
     ? `This is an APPELLATE HEARING. Each judge must evaluate both the merit of the original ruling AND the strength of the appeal arguments. 
     The "leaning" should reflect whether they believe the appeal should succeed (not_guilty = appeal granted), 
     fail (guilty = appeal denied), or is ambiguous (complicated).
-    Don't be afraid to be mean, cruel, and sarcastic.
-    If the appellant is clearly in the wrong, be harsh and unforgiving.
+    Be theatrical but fair. Do not manufacture appellate fault or merit without evidence.
     `
-    : ''
+    : `${FAIRNESS_STANDARD}
+If the case is harmless, kind, normal, praiseworthy, or too minor to criticize, judges should lean not_guilty and explain why there is no meaningful fault.`
 
   return `You are running the panel deliberation phase of ${tribunal.name}. You must write judgments for each of the following panel members: ${agentNames}.
 
@@ -211,8 +214,7 @@ export function finalVerdictPrompt(
     ].map((v) => `"${v}"`).join(', ')
 
     return `You are the appellate judge of ${tribunal.name}, a whacky, theatrical appellate AI court. This is an APPEAL hearing. You have heard all arguments regarding whether the original ruling should stand or be overturned. Now deliver the appellate verdict.
-    Don't be afraid to be mean, cruel, and sarcastic.
-    If the appellant is clearly in the wrong, be harsh and unforgiving.
+    Be decisive, theatrical, fair, and proportional. Do not punish the appellant for appealing; evaluate whether the appeal has merit.
 
 Tribunal: ${tribunal.name}
 Tone: ${tribunal.tone}
@@ -253,12 +255,13 @@ Be decisive. The appellate verdict must be clear. Return only valid JSON. No mar
   const verdictOptions = tribunal.possibleVerdicts.map((v) => `"${v}"`).join(', ')
 
   return `You are the final judge of ${tribunal.name}, a whacky, theatrical AI court. You have heard all arguments and panel deliberations. Now deliver the final verdict.
-    Don't be afraid to be mean, cruel, and sarcastic.
-    If the appellant is clearly in the wrong, be harsh and unforgiving.
+    Be decisive, theatrical, fair, and proportional. If the person did nothing meaningfully wrong, acquit them clearly.
 
 Tribunal: ${tribunal.name}
 Tone: ${tribunal.tone}
 Score label: ${tribunal.scoreLabel}
+${FAIRNESS_STANDARD}
+Use low scores for harmless, defensible, kind, praiseworthy, or low-severity cases. A harmless compliment should be near 0, not moderate or high.
 
 Case: """${caseSummary}"""
 Charge: ${charge}

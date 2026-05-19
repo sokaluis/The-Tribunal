@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getTrialClaimToken } from '../utils/trialClaims'
 
 export function usePublish(initialPublished = false) {
   const [published, setPublished] = useState(initialPublished)
@@ -9,7 +10,12 @@ export function usePublish(initialPublished = false) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/trials/${trialId}/publish`, { method: 'POST' })
+      const claimToken = getTrialClaimToken(trialId)
+      const res = await fetch(`/api/trials/${trialId}/publish`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: claimToken ? { 'X-Trial-Claim-Token': claimToken } : undefined,
+      })
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Failed to publish')

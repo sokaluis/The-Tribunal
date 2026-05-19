@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { saveTrialClaim } from '../utils/trialClaims'
 
 interface CreateTrialOptions {
   caseText: string
@@ -8,6 +9,7 @@ interface CreateTrialOptions {
 interface CreateTrialResult {
   id: string
   status: string
+  claimToken?: string
 }
 
 export function useCreateTrial() {
@@ -20,6 +22,7 @@ export function useCreateTrial() {
     try {
       const res = await fetch('/api/trials', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(options),
       })
@@ -28,7 +31,9 @@ export function useCreateTrial() {
         setError(data.error || 'Failed to start trial')
         return null
       }
-      return data as CreateTrialResult
+      const result = data as CreateTrialResult
+      saveTrialClaim(result.id, result.claimToken)
+      return result
     } catch {
       setError('Network error. Please try again.')
       return null

@@ -2,6 +2,8 @@ import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 
 export const trials = sqliteTable('trials', {
   id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id),
+  claimTokenHash: text('claim_token_hash'),
   caseText: text('case_text').notNull(),
   tribunalType: text('tribunal_type').notNull(),
   status: text('status').notNull().default('pending'),
@@ -26,6 +28,41 @@ export const trials = sqliteTable('trials', {
   errorMessage: text('error_message'),
   createdAt: text('created_at').notNull(),
   completedAt: text('completed_at'),
+})
+
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  displayName: text('display_name').notNull(),
+  profileSlug: text('profile_slug').notNull().unique(),
+  avatarUrl: text('avatar_url'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+})
+
+export const oauthAccounts = sqliteTable('oauth_accounts', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  provider: text('provider').notNull(),
+  providerAccountId: text('provider_account_id').notNull(),
+  email: text('email').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+})
+
+export const sessions = sqliteTable('sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  expiresAt: text('expires_at').notNull(),
+  createdAt: text('created_at').notNull(),
+})
+
+export const oauthStates = sqliteTable('oauth_states', {
+  id: text('id').primaryKey(),
+  codeVerifier: text('code_verifier').notNull(),
+  returnTo: text('return_to').notNull(),
+  expiresAt: text('expires_at').notNull(),
+  createdAt: text('created_at').notNull(),
 })
 
 export const trialTurns = sqliteTable('trial_turns', {
@@ -53,3 +90,5 @@ export type Trial = typeof trials.$inferSelect
 export type NewTrial = typeof trials.$inferInsert
 export type TrialTurn = typeof trialTurns.$inferSelect
 export type PanelJudgment = typeof panelJudgments.$inferSelect
+export type User = typeof users.$inferSelect
+export type Session = typeof sessions.$inferSelect
