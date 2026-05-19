@@ -12,6 +12,7 @@ import {
 } from './steps.js'
 import type { AppealContext } from './appeal-context.js'
 import type { AppealGround } from '../types.js'
+import { storeRawLlmResponses } from '../security.js'
 
 export type { AppealContext }
 
@@ -55,19 +56,25 @@ async function saveTurn(
   contentJson: unknown,
   rawText: string
 ) {
+  const retainedRawText = storeRawLlmResponses() ? rawText : JSON.stringify(contentJson)
+
   await db.insert(trialTurns).values({
     trialId,
     phase,
     agentName,
     role,
     contentJson: JSON.stringify(contentJson),
-    rawText,
+    rawText: retainedRawText,
     createdAt: now(),
   })
 }
 
 export async function runPipeline(trialId: string): Promise<void> {
+  const retainRawResponses = storeRawLlmResponses()
   const rawResponses: string[] = []
+  const retainRawResponse = (rawBody: string): void => {
+    if (retainRawResponses) rawResponses.push(rawBody)
+  }
 
   try {
     const [trial] = await db.select().from(trials).where(eq(trials.id, trialId)).limit(1)
@@ -92,7 +99,7 @@ export async function runPipeline(trialId: string): Promise<void> {
 
     await setStep(trialId, 'normalizing')
     const normalizeResult = await runNormalize(caseText, tribunal, appealContext)
-    rawResponses.push(normalizeResult.rawBody)
+    retainRawResponse(normalizeResult.rawBody)
 
     if (!normalizeResult.isSafe) {
       await db.update(trials).set({
@@ -101,7 +108,7 @@ export async function runPipeline(trialId: string): Promise<void> {
         safetyType: 'content_policy',
         modelUsed: normalizeResult.model,
         pipelineVersion: PIPELINE_VERSION,
-        rawLlmResponses: JSON.stringify(rawResponses),
+        rawLlmResponses: rawResponses.length > 0 ? JSON.stringify(rawResponses) : null,
         completedAt: now(),
       }).where(eq(trials.id, trialId))
       return
@@ -118,8 +125,8 @@ export async function runPipeline(trialId: string): Promise<void> {
       runDefense(caseText, normalizeResult.caseSummary, tribunal, appealContext),
     ])
 
-    rawResponses.push(prosecutionResult.rawBody)
-    rawResponses.push(defenseResult.rawBody)
+    retainRawResponse(prosecutionResult.rawBody)
+    retainRawResponse(defenseResult.rawBody)
 
     await Promise.all([
       saveTurn(trialId, 'prosecute', 'Prosecutor', 'Prosecutor', {
@@ -143,7 +150,7 @@ export async function runPipeline(trialId: string): Promise<void> {
       tribunal,
       appealContext
     )
-    rawResponses.push(panelResult.rawBody)
+    retainRawResponse(panelResult.rawBody)
 
     await saveTurn(trialId, 'panel', 'Panel', 'Panel', panelResult.judgments, panelResult.rawBody)
 
@@ -170,7 +177,7 @@ export async function runPipeline(trialId: string): Promise<void> {
       tribunal,
       appealContext
     )
-    rawResponses.push(finalResult.rawBody)
+    retainRawResponse(finalResult.rawBody)
 
     await saveTurn(trialId, 'finalize', 'Final Judge', 'Final Judge', {
       verdict: finalResult.verdict,
@@ -192,7 +199,7 @@ export async function runPipeline(trialId: string): Promise<void> {
       shareCardJson: JSON.stringify(finalResult.shareCard),
       modelUsed: finalResult.model,
       pipelineVersion: PIPELINE_VERSION,
-      rawLlmResponses: JSON.stringify(rawResponses),
+      rawLlmResponses: rawResponses.length > 0 ? JSON.stringify(rawResponses) : null,
       completedAt: now(),
     }).where(eq(trials.id, trialId))
 

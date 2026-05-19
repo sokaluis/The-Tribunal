@@ -49,6 +49,8 @@ OPENROUTER_MODEL=openai/gpt-4o-mini
 APP_BASE_URL=http://localhost:5173
 OPENROUTER_SITE_URL=http://localhost:5173
 OPENROUTER_APP_NAME=The Tribunal
+STORE_RAW_LLM_RESPONSES=false
+TRUST_PROXY=false
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
@@ -94,6 +96,8 @@ The app runs lightweight startup schema compatibility checks. To fully reset loc
 | `APP_BASE_URL` | No | Base URL for CORS (default: `http://localhost:5173`) |
 | `OPENROUTER_SITE_URL` | No | Sent to OpenRouter as site URL |
 | `OPENROUTER_APP_NAME` | No | App name sent to OpenRouter |
+| `STORE_RAW_LLM_RESPONSES` | No | Store full provider response bodies in the database when `true` (default: `false`) |
+| `TRUST_PROXY` | No | Trust reverse-proxy IP headers for rate limiting when `true` (default: `false`) |
 | `GOOGLE_CLIENT_ID` | Yes for sign-in | Google OAuth client id |
 | `GOOGLE_CLIENT_SECRET` | Yes for sign-in | Google OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | Yes for sign-in | Google OAuth callback URL |

@@ -45,7 +45,7 @@ export async function callOpenRouter(
   const rawBody = await res.text()
 
   if (!res.ok) {
-    console.error('[OpenRouter] Error response:', rawBody)
+    console.error('[OpenRouter] Error response:', { status: res.status, bodyLength: rawBody.length })
     throw new Error(`OpenRouter API error: ${res.status}`)
   }
 
@@ -53,7 +53,7 @@ export async function callOpenRouter(
   const content = parsed.choices?.[0]?.message?.content
 
   if (!content) {
-    console.error('[OpenRouter] No content in response:', rawBody)
+    console.error('[OpenRouter] No content in response:', { model: parsed.model ?? model, bodyLength: rawBody.length })
     throw new Error('OpenRouter returned no content')
   }
 

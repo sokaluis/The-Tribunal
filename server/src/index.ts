@@ -8,6 +8,13 @@ import authRouter from './routes/auth.js'
 import profileRouter from './routes/profile.js'
 import { libsqlClient } from './db/index.js'
 import { seedSampleTrials } from './seedSamples.js'
+import {
+  authRateLimit,
+  configureTrustProxy,
+  requireValidOrigin,
+  securityHeaders,
+  trialRateLimit,
+} from './security.js'
 
 const MIGRATION_SQL = `
   CREATE TABLE IF NOT EXISTS users (
@@ -133,17 +140,36 @@ async function bootstrap() {
 
   const app = express()
   const PORT = process.env.PORT ?? 3001
+  configureTrustProxy(app)
 
   app.use(cors({
     origin: process.env.APP_BASE_URL || 'http://localhost:5173',
     credentials: true,
   }))
 
+  app.use(securityHeaders)
   app.use(express.json({ limit: '10kb' }))
+  app.use(requireValidOrigin)
 
-  app.use('/api/auth', authRouter)
+  app.use('/api/auth', (req, res, next) => {
+    const isLimitedAuthRoute =
+      (req.method === 'GET' && (req.path === '/google/start' || req.path === '/google/callback')) ||
+      (req.method === 'POST' && (req.path === '/logout' || req.path === '/claim-trials'))
+
+    if (isLimitedAuthRoute) {
+      authRateLimit(req, res, next)
+      return
+    }
+    next()
+  }, authRouter)
   app.use('/api/profile', profileRouter)
-  app.use('/api/trials', trialsRouter)
+  app.use('/api/trials', (req, res, next) => {
+    if (req.method === 'POST' && (req.path === '/' || req.path.endsWith('/appeal'))) {
+      trialRateLimit(req, res, next)
+      return
+    }
+    next()
+  }, trialsRouter)
   app.use('/api/gallery', galleryRouter)
   app.use('/api/tribunals', tribunalsRouter)
 
