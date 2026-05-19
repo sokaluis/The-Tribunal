@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { useAppeal } from '../hooks/useAppeal'
 import { APPEAL_GROUNDS, APPEAL_GROUND_LABELS } from '../types'
 import type { TribunalType, AppealGround } from '../types'
+import { TribunalSelectorGrid } from './TribunalSelectorGrid'
 
 interface Props {
   trialId: string
+  currentTribunalType: string
   tribunals: TribunalType[]
 }
 
-export function AppealSelector({ trialId, tribunals }: Props) {
+export function AppealSelector({ trialId, currentTribunalType, tribunals }: Props) {
   const [open, setOpen] = useState(false)
   const [selectedTribunal, setSelectedTribunal] = useState<string | null>(null)
   const [selectedGround, setSelectedGround] = useState<AppealGround | null>(null)
@@ -56,25 +58,17 @@ export function AppealSelector({ trialId, tribunals }: Props) {
       )}
 
       <div className="mb-5">
-        <p className="text-xs text-[#9ca3af] mb-2 font-medium">Choose your court of appeal</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {tribunals.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setSelectedTribunal(t.id)}
-              disabled={loading}
-              className={`rounded-lg border p-3 text-left transition-all cursor-pointer disabled:opacity-50 ${
-                selectedTribunal === t.id
-                  ? 'border-[#d4a853]/60 bg-[#d4a853]/10'
-                  : 'border-[#1e1e2e] hover:border-[#d4a853]/40 hover:bg-[#d4a853]/5'
-              }`}
-            >
-              <div className="text-lg mb-1">{t.icon}</div>
-              <div className="text-xs font-bold text-[#f0ead6] mb-0.5">{t.name.replace(' Tribunal', '')}</div>
-              <div className="text-[10px] text-[#6b7280]">{t.scoreLabel}</div>
-            </button>
-          ))}
-        </div>
+        <p className="text-xs text-[#9ca3af] mb-1 font-medium">Choose the court for your appeal</p>
+        <p className="text-[11px] text-[#6b7280] mb-3">
+          You may ask the same court to reconsider, or take the appeal to a different tribunal.
+        </p>
+        <TribunalSelectorGrid
+          tribunals={tribunals}
+          selected={selectedTribunal}
+          onSelect={setSelectedTribunal}
+          disabled={loading}
+          getBadge={(t) => (t.id === currentTribunalType ? 'Current court' : null)}
+        />
       </div>
 
       <div className="mb-5">

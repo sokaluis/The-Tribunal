@@ -268,6 +268,7 @@ export function TrialPage() {
             {tribunals.length > 0 && (
               <AppealSelector
                 trialId={trial.id}
+                currentTribunalType={trial.tribunalType}
                 tribunals={tribunals}
               />
             )}

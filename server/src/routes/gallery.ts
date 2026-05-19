@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
       .from(trials)
       .where(and(eq(trials.status, 'completed'), eq(trials.isPublic, 1)))
       .orderBy(desc(trials.createdAt))
-      .limit(50)
+      .limit(20)
 
     const trialIds = dbTrials.map((t) => t.id)
     const panelRows =
