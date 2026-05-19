@@ -117,7 +117,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'Judges startup ideas, creative concepts, and product ideas.',
     icon: '💡',
     tone: 'incisive, constructive, occasionally savage',
-    scoreLabel: 'Concept Sillyness',
+    scoreLabel: 'Silly',
     possibleVerdicts: [
       'Promising',
       'Viable with caveats',
@@ -163,7 +163,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'Judges hot takes, arguments, beliefs, and opinions.',
     icon: '🔥',
     tone: 'intellectually rigorous, sharp, occasionally Socratic',
-    scoreLabel: 'Argument Weakness',
+    scoreLabel: 'Argument weakness',
     possibleVerdicts: [
       'Defensible',
       'Reasonable, with caveats',
@@ -211,7 +211,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     description: 'A harsher, more comedic court. Still insightful, but more brutal.',
     icon: '😤',
     tone: 'comedic, sharp, brutally honest, theatrical',
-    scoreLabel: 'Cursedness',
+    scoreLabel: 'Cringe',
     possibleVerdicts: [
       'Looking good',
       'Wholesome',

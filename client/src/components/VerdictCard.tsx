@@ -1,5 +1,6 @@
 import { forwardRef } from 'react'
 import type { ShareCard } from '../types'
+import { formatScorePercent } from '../utils/formatScore'
 import { getScoreSeverityColors } from '../utils/scoreSeverity'
 
 export type VerdictOrientation = 'vertical' | 'horizontal'
@@ -12,7 +13,7 @@ function ScoreBadge({ score, label }: { score: number; label: string }) {
         className="w-16 h-16 rounded-full flex items-center justify-center font-black text-xl border-2"
         style={{ background: colors.bg, borderColor: colors.border, color: colors.text }}
       >
-        {score}
+        {formatScorePercent(score)}
       </div>
       <p
         className="text-[9px] uppercase tracking-widest mt-1.5 text-center leading-tight"

@@ -11,6 +11,7 @@ import { SafetyBlockedView } from '../components/SafetyBlockedView'
 import { ErrorState } from '../components/ErrorState'
 import type { TrialResult, TribunalType, AppealGround } from '../types'
 import { APPEAL_GROUND_LABELS } from '../types'
+import { formatScorePercent } from '../utils/formatScore'
 import { getScoreSeverityColors } from '../utils/scoreSeverity'
 
 function Divider() {
@@ -69,7 +70,7 @@ function VerdictHero({ trial }: { trial: TrialResult }) {
         <span>
           {trial.scoreLabel}:{' '}
           <span className="font-bold" style={{ color: colors.text }}>
-            {trial.score}/100
+            {formatScorePercent(trial.score)}
           </span>
         </span>
       </div>

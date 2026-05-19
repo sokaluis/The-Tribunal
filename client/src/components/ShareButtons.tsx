@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { toPng } from 'html-to-image'
 import { VerdictCard, type VerdictOrientation } from './VerdictCard'
 import type { ShareCard } from '../types'
+import { formatScorePercent } from '../utils/formatScore'
 
 export interface ShareableVerdict {
   shareCard: ShareCard
@@ -33,7 +34,7 @@ export function ShareButtons({ verdict }: Props) {
       `Tribunal: ${verdict.tribunalType.charAt(0).toUpperCase() + verdict.tribunalType.slice(1)} Tribunal`,
       '',
       `Verdict: ${sc.verdict}`,
-      `Score: ${verdict.score}/100 (${verdict.scoreLabel})`,
+      `Score: ${formatScorePercent(verdict.score)} (${verdict.scoreLabel})`,
       '',
       `Charge: ${sc.charge}`,
       `The court recognizes: ${sc.recognized}`,

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
 interface LayoutProps {
@@ -6,8 +6,6 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const location = useLocation()
-  const isHome = location.pathname === '/'
   const { user, loading, signIn, signOut } = useAuth()
 
   return (
@@ -19,11 +17,9 @@ export function Layout({ children }: LayoutProps) {
             <span className="font-bold text-[#f0ead6] tracking-wide text-sm uppercase">The Tribunal</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            {!isHome && (
-              <Link to="/" className="text-[#9ca3af] hover:text-[#f0ead6] transition-colors">
+            <Link to="/" className="text-[#9ca3af] hover:text-[#f0ead6] transition-colors">
                 New Trial
               </Link>
-            )}
             <Link to="/gallery" className="text-[#9ca3af] hover:text-[#f0ead6] transition-colors">
               Gallery
             </Link>

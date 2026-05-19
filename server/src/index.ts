@@ -7,6 +7,7 @@ import tribunalsRouter from './routes/tribunals.js'
 import authRouter from './routes/auth.js'
 import profileRouter from './routes/profile.js'
 import { libsqlClient } from './db/index.js'
+import { seedSampleTrials } from './seedSamples.js'
 
 const MIGRATION_SQL = `
   CREATE TABLE IF NOT EXISTS users (
@@ -127,6 +128,8 @@ async function bootstrap() {
   await libsqlClient.executeMultiple(MIGRATION_SQL)
   await runCompatibilityMigrations()
   console.log('[DB] Migration complete.')
+  await seedSampleTrials()
+  console.log('[DB] Sample trials seeded.')
 
   const app = express()
   const PORT = process.env.PORT ?? 3001

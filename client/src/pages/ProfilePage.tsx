@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { APPEAL_GROUND_LABELS } from '../types'
 import type { AppealGround, TrialStatus } from '../types'
+import { formatScorePercent } from '../utils/formatScore'
 
 interface ProfileTrial {
   id: string
@@ -78,7 +79,7 @@ function TrialCard({ trial }: { trial: ProfileTrial }) {
         </div>
         {trial.score !== null && trial.scoreLabel && (
           <div className="shrink-0 text-right">
-            <p className="text-2xl font-black text-[#d4a853]">{trial.score}</p>
+            <p className="text-2xl font-black text-[#d4a853]">{formatScorePercent(trial.score)}</p>
             <p className="max-w-[90px] text-[10px] uppercase leading-tight tracking-widest text-[#6b7280]">{trial.scoreLabel}</p>
           </div>
         )}
@@ -216,4 +217,3 @@ export function ProfilePage() {
     </div>
   )
 }
-

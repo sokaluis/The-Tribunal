@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { db } from '../db/index.js'
 import { trials, panelJudgments } from '../db/schema.js'
 import { eq, and, desc, inArray } from 'drizzle-orm'
-import { SAMPLE_VERDICTS } from '../samples.js'
 import {
   parseGallerySort,
   computePanelDisagreement,
@@ -39,7 +38,7 @@ router.get('/', async (req, res) => {
       leaningsByTrial.set(row.trialId, list)
     }
 
-    const realVerdicts = dbTrials
+    const galleryVerdicts = dbTrials
       .filter((t) => t.shareCardJson)
       .map((t) => {
         const leanings = leaningsByTrial.get(t.id) ?? []
@@ -53,23 +52,19 @@ router.get('/', async (req, res) => {
           caseSummary: t.caseSummary ?? '',
           caseText: t.caseText,
           sentence: t.sentence ?? '',
-          isExample: false,
+          isExample: t.id.startsWith('sample_'),
           shareCard: JSON.parse(t.shareCardJson!),
           createdAt: t.createdAt,
           panelDisagreement: computePanelDisagreement(leanings),
         }
       })
 
-    const samples = SAMPLE_VERDICTS.map((s) => ({
-      ...s,
-      panelDisagreement: 0,
-    }))
-
-    const sorted = sortGalleryVerdicts([...realVerdicts, ...samples], sort).slice(0, 20)
+    const sorted = sortGalleryVerdicts(galleryVerdicts, sort).slice(0, 20)
 
     const verdicts = sorted.map(({ panelDisagreement: _d, ...rest }) => rest)
+    const realCount = galleryVerdicts.filter((verdict) => !verdict.isExample).length
 
-    res.json({ verdicts, total: verdicts.length, realCount: realVerdicts.length, sort })
+    res.json({ verdicts, total: verdicts.length, realCount, sort })
   } catch (err) {
     console.error('[GET /gallery]', err)
     res.status(500).json({ error: 'Failed to load gallery' })
