@@ -5,6 +5,7 @@ import trialsRouter from './routes/trials.js'
 import galleryRouter from './routes/gallery.js'
 import tribunalsRouter from './routes/tribunals.js'
 import authRouter from './routes/auth.js'
+import profileRouter from './routes/profile.js'
 import { libsqlClient } from './db/index.js'
 
 const MIGRATION_SQL = `
@@ -138,6 +139,7 @@ async function bootstrap() {
   app.use(express.json({ limit: '10kb' }))
 
   app.use('/api/auth', authRouter)
+  app.use('/api/profile', profileRouter)
   app.use('/api/trials', trialsRouter)
   app.use('/api/gallery', galleryRouter)
   app.use('/api/tribunals', tribunalsRouter)

@@ -30,13 +30,21 @@ export function Layout({ children }: LayoutProps) {
             {loading ? (
               <span className="text-[#4b5563]">Checking session...</span>
             ) : user ? (
-              <button
-                onClick={signOut}
-                className="text-[#9ca3af] hover:text-[#f0ead6] transition-colors cursor-pointer"
-                title={user.email}
-              >
-                Sign out {user.displayName.split(' ')[0]}
-              </button>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/profile"
+                  className="text-[#d4a853] hover:text-[#e8c477] transition-colors"
+                  title={user.email}
+                >
+                  {user.displayName.split(' ')[0]}
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="text-[#6b7280] hover:text-[#f0ead6] transition-colors cursor-pointer"
+                >
+                  Sign out
+                </button>
+              </div>
             ) : (
               <button
                 onClick={signIn}
