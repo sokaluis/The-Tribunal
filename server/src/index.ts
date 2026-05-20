@@ -152,15 +152,13 @@ async function bootstrap() {
   app.use(requireValidOrigin)
 
   app.use('/api/auth', (req, res, next) => {
-    const isLimitedAuthRoute =
-      (req.method === 'GET' && (req.path === '/google/start' || req.path === '/google/callback')) ||
-      (req.method === 'POST' && (req.path === '/logout' || req.path === '/claim-trials'))
+    const skipAuthRateLimit = req.method === 'GET' && req.path === '/me'
 
-    if (isLimitedAuthRoute) {
-      authRateLimit(req, res, next)
+    if (skipAuthRateLimit) {
+      next()
       return
     }
-    next()
+    authRateLimit(req, res, next)
   }, authRouter)
   app.use('/api/profile', profileRouter)
   app.use('/api/trials', (req, res, next) => {
