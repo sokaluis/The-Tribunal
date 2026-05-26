@@ -31,6 +31,7 @@ Completed trials can be appealed: the appellant picks a new tribunal, states gro
 ## Requirements
 
 - Node 22+ (see `.nvmrc`)
+- pnpm 11+ (managed by `packageManager` in `package.json`)
 - An OpenRouter API key: https://openrouter.ai
 
 ## Setup
@@ -59,22 +60,31 @@ GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
 2. Install dependencies:
 
 ```bash
-cd server && npm install
-cd ../client && npm install
+pnpm install
 ```
 
 ## Running
 
+Common workspace commands:
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start client and server dev scripts together |
+| `pnpm dev:server` | Start only the backend API on port 3001 |
+| `pnpm dev:client` | Start only the frontend on port 5173 |
+
+For focused package commands, use pnpm filters from the repo root, for example `pnpm --filter client lint`.
+
 Start the backend (port 3001). Schema bootstrap runs automatically on startup (`CREATE TABLE IF NOT EXISTS` in `server/src/index.ts`):
 
 ```bash
-cd server && npm run dev
+pnpm dev:server
 ```
 
 Start the frontend (port 5173):
 
 ```bash
-cd client && npm run dev
+pnpm dev:client
 ```
 
 Open http://localhost:5173
