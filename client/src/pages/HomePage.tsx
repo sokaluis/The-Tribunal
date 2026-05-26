@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Hero } from '../components/Hero'
 import { CaseInput } from '../components/CaseInput'
@@ -7,22 +7,13 @@ import { ExampleCaseButtons } from '../components/ExampleCaseButtons'
 import { HowItWorks } from '../components/HowItWorks'
 import { VerdictCard } from '../components/VerdictCard'
 import { useCreateTrial } from '../hooks/useCreateTrial'
+import { useLocale } from '../i18n'
 import type { TribunalType } from '../types'
-
-const SAMPLE_CARD = {
-  caseNumber: '00421',
-  headline: 'THE TRIBUNAL HAS SPOKEN',
-  shortCase: 'I ghosted a friend for three weeks.',
-  verdict: 'Guilty, with mitigating circumstances',
-  charge: 'Cowardice disguised as self-care.',
-  recognized: 'You were genuinely overwhelmed.',
-  rejected: 'That silence counts as communication.',
-  sentence: 'Send one honest message. Under 120 words. No dramatic monologue.',
-}
 
 const SAMPLE_CASE_TEXT = "I ghosted a close friend for three weeks because I was overwhelmed and didn't want to explain myself."
 
 export function HomePage() {
+  const { t, locale } = useLocale()
   const [caseText, setCaseText] = useState('')
   const [tribunalType, setTribunalType] = useState('relationship')
   const [tribunals, setTribunals] = useState<TribunalType[]>([])
@@ -30,17 +21,39 @@ export function HomePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
+  // Resolve the relationship tribunal from fetched data for localized sample card values
+  const relationshipTribunal = useMemo(
+    () => tribunals.find((tr) => tr.id === 'relationship'),
+    [tribunals],
+  )
+
+  const sampleCard = useMemo(
+    () => ({
+      caseNumber: '00421',
+      headline: t('share.copied_headline'),
+      shortCase: 'I ghosted a friend for three weeks.',
+      verdict: 'Guilty, with mitigating circumstances',
+      charge: 'Cowardice disguised as self-care.',
+      recognized: 'You were genuinely overwhelmed.',
+      rejected: 'That silence counts as communication.',
+      sentence: 'Send one honest message. Under 120 words. No dramatic monologue.',
+    }),
+    [t],
+  )
+
+  const sampleScoreLabel = relationshipTribunal?.scoreLabel ?? t('home.sample_score_label')
+
   useEffect(() => {
     const prefilled = searchParams.get('case')
     if (prefilled) setCaseText(prefilled)
   }, [])
 
   useEffect(() => {
-    fetch('/api/tribunals')
+    fetch(`/api/tribunals?locale=${locale}`)
       .then((r) => r.json())
       .then((data) => setTribunals(data))
       .catch(console.error)
-  }, [])
+  }, [locale])
 
   const handleSubmit = async () => {
     if (!caseText.trim() || caseText.length < 10) return
@@ -95,11 +108,11 @@ export function HomePage() {
                 : 'bg-[#14141f] text-[#4b5563] border border-[#1e1e2e] cursor-not-allowed',
             ].join(' ')}
           >
-            {loading ? 'Filing case...' : 'Start Trial'}
+            {loading ? t('home.filing_case') : t('home.start_trial')}
           </button>
 
           <p className="text-center text-xs text-[#4b5563]">
-            Press Cmd+Enter to submit — or Ctrl+Enter on Windows
+            {t('home.submit_hint')}
           </p>
 
           <ExampleCaseButtons onSelect={handleExampleSelect} />
@@ -110,18 +123,18 @@ export function HomePage() {
 
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#6b7280] text-center mb-2 font-medium">Sample verdict</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[#6b7280] text-center mb-2 font-medium">{t('home.sample_verdict')}</p>
           <h2 className="text-3xl font-black text-[#f0ead6] text-center mb-10" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
-            The verdict card
+            {t('home.verdict_card_title')}
           </h2>
           <p className="text-center text-[#9ca3af] text-sm mb-10 max-w-md mx-auto">
-            Every trial produces a shareable verdict card. Download it as an image, copy the text, or post it as-is.
+            {t('home.verdict_card_desc')}
           </p>
           <div className="max-w-lg mx-auto">
             <VerdictCard
-              shareCard={SAMPLE_CARD}
+              shareCard={sampleCard}
               score={72}
-              scoreLabel="Asshole Score"
+              scoreLabel={sampleScoreLabel}
               tribunalType="relationship"
               caseText={SAMPLE_CASE_TEXT}
             />
@@ -132,16 +145,16 @@ export function HomePage() {
       <section className="py-16 px-4 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-black text-[#f0ead6] mb-4" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
-            The court awaits.
+            {t('home.cta_title')}
           </h2>
           <p className="text-[#9ca3af] mb-8 text-sm">
-            Submit a dilemma, confession, opinion, or idea. The AI judges have seen everything and judged worse.
+            {t('home.cta_subtitle')}
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="px-8 py-3.5 rounded-xl bg-[#d4a853] text-[#0a0a0f] font-bold hover:bg-[#e8c477] transition-colors cursor-pointer"
           >
-            Start Trial
+            {t('home.cta_button')}
           </button>
         </div>
       </section>

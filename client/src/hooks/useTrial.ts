@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { TrialResponse } from '../types'
 import { getTrialClaimToken } from '../utils/trialClaims'
+import { useLocale } from '../i18n'
 
 const TERMINAL_STATUSES = new Set(['completed', 'failed', 'safety_blocked'])
 const POLL_INTERVAL = 2000
 
 export function useTrial(id: string | undefined) {
+  const { locale, t } = useLocale()
   const [data, setData] = useState<TrialResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -14,17 +16,17 @@ export function useTrial(id: string | undefined) {
     if (!id) return true
     try {
       const claimToken = getTrialClaimToken(id)
-      const res = await fetch(`/api/trials/${id}`, {
+      const res = await fetch(`/api/trials/${id}?locale=${locale}`, {
         credentials: 'include',
         headers: claimToken ? { 'X-Trial-Claim-Token': claimToken } : undefined,
       })
       if (res.status === 404) {
-        setError('Trial not found')
+        setError(t('errors.trial_not_found'))
         setLoading(false)
         return true
       }
       if (!res.ok) {
-        setError('Failed to load trial')
+        setError(t('errors.load_trials'))
         setLoading(false)
         return true
       }
@@ -33,11 +35,11 @@ export function useTrial(id: string | undefined) {
       setLoading(false)
       return TERMINAL_STATUSES.has(json.status)
     } catch {
-      setError('Network error while loading trial')
+      setError(t('errors.network'))
       setLoading(false)
       return true
     }
-  }, [id])
+  }, [id, locale, t])
 
   useEffect(() => {
     if (!id) return

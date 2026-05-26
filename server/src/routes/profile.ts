@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { desc, eq } from 'drizzle-orm'
+import { parseLocale } from '@the-tribunal/contracts'
 import { db } from '../db/index.js'
 import { trials } from '../db/schema.js'
 import { getCurrentUser } from '../auth.js'
@@ -30,6 +31,7 @@ router.get('/trials', async (req, res) => {
         verdict: trial.verdict,
         score: trial.score,
         scoreLabel: trial.scoreLabel,
+        locale: parseLocale(trial.locale),
         isPublic: trial.isPublic === 1,
         appealOfId: trial.appealOfId,
         appealGround: trial.appealGround,
@@ -44,4 +46,3 @@ router.get('/trials', async (req, res) => {
 })
 
 export default router
-

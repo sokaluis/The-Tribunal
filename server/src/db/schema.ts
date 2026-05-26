@@ -26,6 +26,7 @@ export const trials = sqliteTable('trials', {
   pipelineVersion: text('pipeline_version').notNull().default('1.0'),
   rawLlmResponses: text('raw_llm_responses'),
   errorMessage: text('error_message'),
+  locale: text('locale').notNull().default('en'),
   createdAt: text('created_at').notNull(),
   completedAt: text('completed_at'),
 })

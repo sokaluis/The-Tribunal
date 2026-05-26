@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
+import { parseLocale, LocaleSchema } from '@the-tribunal/contracts'
+import type { Locale } from '@the-tribunal/contracts'
 import { db } from '../db/index.js'
 import { trials, trialTurns, panelJudgments } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
@@ -8,6 +10,7 @@ import { TRIBUNAL_IDS } from '../tribunals.js'
 import { runPipeline, SAFETY_RESOURCES } from '../pipeline/index.js'
 import type { TrialResponse } from '../types.js'
 import { APPEAL_GROUNDS } from '../types.js'
+import { t } from '../i18n/index.js'
 import {
   generateSecretToken,
   getClaimToken,
@@ -22,24 +25,29 @@ const router = Router()
 const CreateTrialSchema = z.object({
   caseText: z.string().min(10, 'Case must be at least 10 characters').max(3000, 'Case must be at most 3000 characters'),
   tribunalType: z.enum(TRIBUNAL_IDS as [string, ...string[]]),
+  locale: z.preprocess((val) => parseLocale(val), LocaleSchema).optional().default('en'),
 })
 
 const AppealSchema = z.object({
   tribunalType: z.enum(TRIBUNAL_IDS as [string, ...string[]]),
   appealGround: z.enum(APPEAL_GROUNDS as unknown as [string, ...string[]]),
   appealText: z.string().max(1000, 'Appeal text must be at most 1000 characters').optional().default(''),
+  locale: z.preprocess((val) => parseLocale(val), LocaleSchema).optional().default('en'),
 })
 
 function buildTrialResponse(
   trial: typeof trials.$inferSelect,
   panelRows: typeof panelJudgments.$inferSelect[],
   turns: typeof trialTurns.$inferSelect[],
-  options: { exposeAppealOfId?: boolean } = {}
+  options: { exposeAppealOfId?: boolean; locale?: Locale } = {}
 ): TrialResponse {
+  const resolvedLocale = parseLocale(trial.locale)
+
   if (trial.status === 'pending' || trial.status === 'processing') {
     return {
       id: trial.id,
       status: trial.status,
+      locale: resolvedLocale,
       currentStep: (trial.currentStep as 'normalizing' | 'prosecuting' | 'judging' | 'finalizing' | null) ?? null,
     }
   }
@@ -48,7 +56,8 @@ function buildTrialResponse(
     return {
       id: trial.id,
       status: 'failed',
-      error: 'Something went wrong during the trial. Please try again.',
+      locale: resolvedLocale,
+      error: t('trial.error_message', options.locale),
     }
   }
 
@@ -56,7 +65,8 @@ function buildTrialResponse(
     return {
       id: trial.id,
       status: 'safety_blocked',
-      safetyMessage: trial.safetyMessage ?? 'This submission could not be processed.',
+      locale: resolvedLocale,
+      safetyMessage: trial.safetyMessage ?? t('trial.safety_default', options.locale),
       safetyType: (trial.safetyType as 'crisis' | 'content_policy' | null) ?? 'crisis',
       resources: trial.safetyType === 'content_policy' ? [] : SAFETY_RESOURCES,
     }
@@ -75,16 +85,17 @@ function buildTrialResponse(
     createdAt: trial.createdAt,
     completedAt: trial.completedAt,
     status: 'completed',
+    locale: resolvedLocale,
     charge: trial.charge ?? '',
     verdict: trial.verdict ?? '',
     score: trial.score ?? 0,
     scoreLabel: trial.scoreLabel ?? '',
     prosecution: {
-      title: 'The case against you',
+      title: t('trial.prosecution_title', options.locale),
       argument: prosecuteTurn ? JSON.parse(prosecuteTurn.contentJson).argument : '',
     },
     defense: {
-      title: 'The best defense',
+      title: t('trial.defense_title', options.locale),
       argument: defendTurn ? JSON.parse(defendTurn.contentJson).argument : '',
     },
     panelJudgments: panelRows.map((p) => ({
@@ -131,7 +142,7 @@ router.post('/', async (req, res) => {
       return
     }
 
-    const { caseText, tribunalType } = body.data
+    const { caseText, tribunalType, locale } = body.data
     const id = nanoid(12)
     const createdAt = new Date().toISOString()
     const claimToken = user ? null : generateSecretToken()
@@ -143,12 +154,13 @@ router.post('/', async (req, res) => {
       caseText,
       tribunalType,
       status: 'pending',
+      locale,
       createdAt,
       pipelineVersion: '1.0',
     })
 
     setImmediate(() => {
-      runPipeline(id).catch((err) => {
+      runPipeline(id, locale).catch((err) => {
         console.error(`[Route] Unhandled pipeline error for ${id}:`, err)
       })
     })
@@ -189,7 +201,11 @@ router.get('/:id', async (req, res) => {
       exposeAppealOfId = !!original && canAccessTrial(original, user, claimToken)
     }
 
-    const response = buildTrialResponse(trial, panelRows, turns, { exposeAppealOfId })
+    const requestLocale = parseLocale(req.query?.locale)
+    const response = buildTrialResponse(trial, panelRows, turns, {
+      exposeAppealOfId,
+      locale: requestLocale,
+    })
     res.json(response)
   } catch (err) {
     console.error('[GET /trials/:id]', err)
@@ -226,7 +242,7 @@ router.post('/:id/appeal', async (req, res) => {
       return
     }
 
-    const { tribunalType, appealGround, appealText } = body.data
+    const { tribunalType, appealGround, appealText, locale } = body.data
 
     const id = nanoid(12)
     const createdAt = new Date().toISOString()
@@ -242,12 +258,13 @@ router.post('/:id/appeal', async (req, res) => {
       appealOfId: original.id,
       appealGround,
       appealText: appealText || null,
+      locale,
       createdAt,
       pipelineVersion: '1.0',
     })
 
     setImmediate(() => {
-      runPipeline(id).catch((err) => {
+      runPipeline(id, locale).catch((err) => {
         console.error(`[Route] Unhandled pipeline error for appeal ${id}:`, err)
       })
     })

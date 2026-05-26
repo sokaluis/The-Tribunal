@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { AppealGround } from '../types'
 import { getTrialClaimToken, saveTrialClaim } from '../utils/trialClaims'
+import { useLocale } from '../i18n'
 
 interface AppealParams {
   trialId: string
@@ -12,6 +13,7 @@ interface AppealParams {
 export function useAppeal() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { locale, t } = useLocale()
 
   const appeal = async ({ trialId, tribunalType, appealGround, appealText }: AppealParams): Promise<{ id: string } | null> => {
     setLoading(true)
@@ -25,18 +27,18 @@ export function useAppeal() {
           'Content-Type': 'application/json',
           ...(claimToken ? { 'X-Trial-Claim-Token': claimToken } : {}),
         },
-        body: JSON.stringify({ tribunalType, appealGround, appealText }),
+        body: JSON.stringify({ tribunalType, appealGround, appealText, locale }),
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Failed to file appeal')
+        setError(data.error || t('errors.file_appeal'))
         return null
       }
       const result = data as { id: string; claimToken?: string }
       saveTrialClaim(result.id, result.claimToken)
       return { id: result.id }
     } catch {
-      setError('Network error. Please try again.')
+      setError(t('errors.network'))
       return null
     } finally {
       setLoading(false)

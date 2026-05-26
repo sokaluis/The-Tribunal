@@ -1,8 +1,10 @@
+import type { Locale } from '@the-tribunal/contracts'
+import { DEFAULT_LOCALE } from '@the-tribunal/contracts'
 import { db } from '../db/index.js'
 import { trials, trialTurns, panelJudgments } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 import { getTribunal } from '../tribunals.js'
-import { quickKeywordCheck, SAFETY_MESSAGE, CONTENT_POLICY_MESSAGE, SAFETY_RESOURCES } from './safety.js'
+import { quickKeywordCheck, getSafetyMessage, getContentPolicyMessage, SAFETY_RESOURCES } from './safety.js'
 import {
   runNormalize,
   runProsecution,
@@ -13,6 +15,7 @@ import {
 import type { AppealContext } from './appeal-context.js'
 import type { AppealGround } from '../types.js'
 import { storeRawLlmResponses } from '../security.js'
+import { t } from '../i18n/index.js'
 
 export type { AppealContext }
 
@@ -69,7 +72,8 @@ async function saveTurn(
   })
 }
 
-export async function runPipeline(trialId: string): Promise<void> {
+export async function runPipeline(trialId: string, locale?: Locale): Promise<void> {
+  const effectiveLocale = locale ?? DEFAULT_LOCALE
   const retainRawResponses = storeRawLlmResponses()
   const rawResponses: string[] = []
   const retainRawResponse = (rawBody: string): void => {
@@ -90,7 +94,7 @@ export async function runPipeline(trialId: string): Promise<void> {
     if (!keywordCheck.safe) {
       await db.update(trials).set({
         status: 'safety_blocked',
-        safetyMessage: SAFETY_MESSAGE,
+        safetyMessage: getSafetyMessage(effectiveLocale),
         safetyType: 'crisis',
         completedAt: now(),
       }).where(eq(trials.id, trialId))
@@ -98,13 +102,13 @@ export async function runPipeline(trialId: string): Promise<void> {
     }
 
     await setStep(trialId, 'normalizing')
-    const normalizeResult = await runNormalize(caseText, tribunal, appealContext)
+    const normalizeResult = await runNormalize(caseText, tribunal, appealContext, effectiveLocale)
     retainRawResponse(normalizeResult.rawBody)
 
     if (!normalizeResult.isSafe) {
       await db.update(trials).set({
         status: 'safety_blocked',
-        safetyMessage: CONTENT_POLICY_MESSAGE,
+        safetyMessage: getContentPolicyMessage(effectiveLocale),
         safetyType: 'content_policy',
         modelUsed: normalizeResult.model,
         pipelineVersion: PIPELINE_VERSION,
@@ -121,8 +125,8 @@ export async function runPipeline(trialId: string): Promise<void> {
 
     await setStep(trialId, 'prosecuting')
     const [prosecutionResult, defenseResult] = await Promise.all([
-      runProsecution(caseText, normalizeResult.caseSummary, tribunal, appealContext),
-      runDefense(caseText, normalizeResult.caseSummary, tribunal, appealContext),
+      runProsecution(caseText, normalizeResult.caseSummary, tribunal, appealContext, effectiveLocale),
+      runDefense(caseText, normalizeResult.caseSummary, tribunal, appealContext, effectiveLocale),
     ])
 
     retainRawResponse(prosecutionResult.rawBody)
@@ -148,7 +152,8 @@ export async function runPipeline(trialId: string): Promise<void> {
       prosecutionResult.argument,
       defenseResult.argument,
       tribunal,
-      appealContext
+      appealContext,
+      effectiveLocale
     )
     retainRawResponse(panelResult.rawBody)
 
@@ -175,7 +180,8 @@ export async function runPipeline(trialId: string): Promise<void> {
       defenseResult.argument,
       panelResult.judgments,
       tribunal,
-      appealContext
+      appealContext,
+      effectiveLocale
     )
     retainRawResponse(finalResult.rawBody)
 
@@ -193,7 +199,7 @@ export async function runPipeline(trialId: string): Promise<void> {
       charge: prosecutionResult.charge,
       verdict: finalResult.verdict,
       score: finalResult.score,
-      scoreLabel: tribunal.scoreLabel,
+      scoreLabel: t(`tribunal.${trial.tribunalType}.score_label`, effectiveLocale),
       finalReasoning: finalResult.finalReasoning,
       sentence: finalResult.sentence,
       shareCardJson: JSON.stringify(finalResult.shareCard),

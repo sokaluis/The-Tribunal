@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppeal } from '../hooks/useAppeal'
-import { APPEAL_GROUNDS, APPEAL_GROUND_LABELS } from '../types'
+import { useT } from '../i18n'
+import { APPEAL_GROUNDS } from '../types'
 import type { TribunalType, AppealGround } from '../types'
 import { TribunalSelectorGrid } from './TribunalSelectorGrid'
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function AppealSelector({ trialId, currentTribunalType, tribunals }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [selectedTribunal, setSelectedTribunal] = useState<string | null>(null)
   const [selectedGround, setSelectedGround] = useState<AppealGround | null>(null)
@@ -41,7 +43,7 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
           onClick={() => setOpen(true)}
           className="text-sm text-[#9ca3af] hover:text-[#d4a853] transition-colors border border-[#1e1e2e] rounded-lg px-5 py-2.5 hover:border-[#d4a853]/30 cursor-pointer"
         >
-          ⚖ Appeal this verdict
+          {t('appeal.button')}
         </button>
       </div>
     )
@@ -50,7 +52,7 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
   return (
     <div className="animate-fade-in-up rounded-xl border border-[#1e1e2e] bg-[#14141f] p-5">
       <p className="text-xs uppercase tracking-widest text-[#6b7280] mb-5 font-medium text-center">
-        File an appeal
+        {t('appeal.title')}
       </p>
 
       {error && (
@@ -58,21 +60,21 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
       )}
 
       <div className="mb-5">
-        <p className="text-xs text-[#9ca3af] mb-1 font-medium">Choose the court for your appeal</p>
+        <p className="text-xs text-[#9ca3af] mb-1 font-medium">{t('appeal.choose_court')}</p>
         <p className="text-[11px] text-[#6b7280] mb-3">
-          You may ask the same court to reconsider, or take the appeal to a different tribunal.
+          {t('appeal.choose_court_hint')}
         </p>
         <TribunalSelectorGrid
           tribunals={tribunals}
           selected={selectedTribunal}
           onSelect={setSelectedTribunal}
           disabled={loading}
-          getBadge={(t) => (t.id === currentTribunalType ? 'Current court' : null)}
+          getBadge={(trib) => (trib.id === currentTribunalType ? t('appeal.current_court') : null)}
         />
       </div>
 
       <div className="mb-5">
-        <p className="text-xs text-[#9ca3af] mb-2 font-medium">Grounds for appeal</p>
+        <p className="text-xs text-[#9ca3af] mb-2 font-medium">{t('appeal.grounds')}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {APPEAL_GROUNDS.map((ground) => (
             <button
@@ -85,7 +87,7 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
                   : 'border-[#1e1e2e] hover:border-[#d4a853]/40 hover:bg-[#d4a853]/5'
               }`}
             >
-              <div className="text-xs text-[#f0ead6]">{APPEAL_GROUND_LABELS[ground]}</div>
+              <div className="text-xs text-[#f0ead6]">{t(`appeal.ground.${ground}`)}</div>
             </button>
           ))}
         </div>
@@ -93,12 +95,12 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
 
       <div className="mb-5">
         <p className="text-xs text-[#9ca3af] mb-2 font-medium">
-          Explain your appeal <span className="text-[#4b5563]">(strongly encouraged)</span>
+          {t('appeal.explain')} <span className="text-[#4b5563]">{t('appeal.explain_hint')}</span>
         </p>
         <textarea
           value={appealText}
           onChange={(e) => setAppealText(e.target.value)}
-          placeholder="Why do you believe the original verdict was wrong? What did the court miss?"
+          placeholder={t('appeal.placeholder')}
           maxLength={1000}
           disabled={loading}
           rows={3}
@@ -113,14 +115,14 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
           disabled={!canSubmit}
           className="text-sm font-medium text-[#d4a853] border border-[#d4a853]/40 rounded-lg px-5 py-2 hover:bg-[#d4a853]/10 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? 'Filing appeal...' : 'File appeal'}
+          {loading ? t('appeal.filing') : t('appeal.submit')}
         </button>
         <button
           onClick={() => setOpen(false)}
           disabled={loading}
           className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors cursor-pointer disabled:opacity-50"
         >
-          Cancel
+          {t('appeal.cancel')}
         </button>
       </div>
     </div>

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { TribunalType } from '../types'
+import { useT } from '../i18n'
 
 interface TooltipProps {
   tribunal: TribunalType
 }
 
 function InfoTooltip({ tribunal }: TooltipProps) {
+  const t = useT()
   const [visible, setVisible] = useState(false)
 
   return (
@@ -18,7 +20,7 @@ function InfoTooltip({ tribunal }: TooltipProps) {
         onFocus={() => setVisible(true)}
         onBlur={() => setVisible(false)}
         className="w-4 h-4 rounded-full border border-[#4b5563] text-[#6b7280] hover:border-[#9ca3af] hover:text-[#9ca3af] transition-colors flex items-center justify-center text-[9px] font-bold leading-none cursor-default select-none"
-        aria-label={`More info about ${tribunal.name}`}
+        aria-label={`${t('tribunal.more_info')} ${tribunal.name}`}
       >
         i
       </span>
@@ -31,15 +33,15 @@ function InfoTooltip({ tribunal }: TooltipProps) {
           <p className="text-[11px] text-[#9ca3af] leading-snug mb-2">{tribunal.description}</p>
           <div className="border-t border-[#1e1e2e] pt-2 space-y-1.5">
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">Tone</p>
+              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">{t('tribunal.tone')}</p>
               <p className="text-[11px] text-[#9ca3af] italic">{tribunal.tone}</p>
             </div>
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">Score</p>
+              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">{t('tribunal.score')}</p>
               <p className="text-[11px] text-[#9ca3af]">{tribunal.scoreLabel}</p>
             </div>
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">Panel</p>
+              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">{t('tribunal.panel')}</p>
               <p className="text-[11px] text-[#9ca3af]">
                 {tribunal.panelAgents.map((a) => a.name).join(', ')}
               </p>
@@ -88,7 +90,7 @@ export function TribunalSelectorGrid({ tribunals, selected, onSelect, disabled, 
             </div>
             <div className="text-xl mb-1.5">{t.icon}</div>
             <div className={`text-xs font-bold mb-0.5 pr-4 ${isSelected ? 'text-[#d4a853]' : 'text-[#f0ead6]'}`}>
-              {t.name.replace(' Tribunal', '')}
+              {t.name.replace(/\s*Tribunal\s*/gi, '')}
             </div>
             <div className="text-[10px] text-[#6b7280] leading-tight line-clamp-2 pr-4">
               {t.description}

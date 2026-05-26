@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { APPEAL_GROUND_LABELS } from '../types'
+import { useT } from '../i18n'
 import type { AppealGround, TrialStatus } from '../types'
 import { formatScorePercent } from '../utils/formatScore'
 
@@ -19,14 +19,15 @@ interface ProfileTrial {
   appealGround: AppealGround | null
   createdAt: string
   completedAt: string | null
+  locale: string
 }
 
-const STATUS_LABELS: Record<TrialStatus, string> = {
-  pending: 'Pending',
-  processing: 'Processing',
-  completed: 'Completed',
-  failed: 'Failed',
-  safety_blocked: 'Safety blocked',
+const STATUS_LABEL_KEYS: Record<TrialStatus, string> = {
+  pending: 'profile.status_pending',
+  processing: 'profile.status_processing',
+  completed: 'profile.status_completed',
+  failed: 'profile.status_failed',
+  safety_blocked: 'profile.status_safety_blocked',
 }
 
 function formatDate(value: string) {
@@ -38,7 +39,8 @@ function formatDate(value: string) {
 }
 
 function TrialCard({ trial }: { trial: ProfileTrial }) {
-  const title = trial.verdict || STATUS_LABELS[trial.status]
+  const t = useT()
+  const title = trial.verdict || t(STATUS_LABEL_KEYS[trial.status])
   const summary = trial.caseSummary || trial.caseText
 
   return (
@@ -50,30 +52,30 @@ function TrialCard({ trial }: { trial: ProfileTrial }) {
         <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
           trial.isPublic ? 'bg-[#16a34a]/10 text-[#16a34a]' : 'bg-[#2a2a3e] text-[#9ca3af]'
         }`}>
-          {trial.isPublic ? 'Public' : 'Private'}
+          {trial.isPublic ? t('profile.public') : t('profile.private')}
         </span>
         <span className="rounded-full bg-[#d4a853]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#d4a853]">
-          {STATUS_LABELS[trial.status]}
+          {t(STATUS_LABEL_KEYS[trial.status])}
         </span>
         {trial.appealOfId && (
           <span className="rounded-full bg-[#0c0c14] px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#9ca3af]">
-            Appeal
+            {t('profile.appeal_tag')}
           </span>
         )}
       </div>
 
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="mb-1 text-xs uppercase tracking-widest text-[#6b7280]">
-            {trial.tribunalType} tribunal · {formatDate(trial.createdAt)}
-          </p>
+            <p className="mb-1 text-xs uppercase tracking-widest text-[#6b7280]">
+              {t(`tribunal.${trial.tribunalType}.name`)} · {formatDate(trial.createdAt)}
+            </p>
           <h2 className="mb-2 text-lg font-black leading-tight text-[#f0ead6]" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
             {title}
           </h2>
           <p className="line-clamp-2 text-sm leading-relaxed text-[#9ca3af]">{summary}</p>
           {trial.appealGround && (
             <p className="mt-2 text-xs text-[#6b7280]">
-              Grounds: <span className="text-[#9ca3af]">{APPEAL_GROUND_LABELS[trial.appealGround]}</span>
+              {t('profile.grounds')} <span className="text-[#9ca3af]">{t(`appeal.ground.${trial.appealGround}`)}</span>
             </p>
           )}
         </div>
@@ -89,6 +91,7 @@ function TrialCard({ trial }: { trial: ProfileTrial }) {
 }
 
 export function ProfilePage() {
+  const t = useT()
   const { user, loading: authLoading, signIn } = useAuth()
   const [trials, setTrials] = useState<ProfileTrial[]>([])
   const [loading, setLoading] = useState(false)
@@ -104,14 +107,14 @@ export function ProfilePage() {
     fetch('/api/profile/trials', { credentials: 'include' })
       .then(async (res) => {
         const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Failed to load trials')
+        if (!res.ok) throw new Error(data.error || t('errors.load_trials'))
         return data as { trials: ProfileTrial[] }
       })
       .then((data) => {
         if (!cancelled) setTrials(data.trials)
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load trials')
+        if (!cancelled) setError(err instanceof Error ? err.message : t('errors.load_trials'))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -125,7 +128,7 @@ export function ProfilePage() {
   if (authLoading) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center text-[#6b7280]">
-        Checking your court credentials...
+        {t('profile.checking')}
       </div>
     )
   }
@@ -133,18 +136,18 @@ export function ProfilePage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-xl px-4 py-20 text-center">
-        <p className="mb-2 text-xs font-medium uppercase tracking-[0.25em] text-[#6b7280]">Private chambers</p>
+        <p className="mb-2 text-xs font-medium uppercase tracking-[0.25em] text-[#6b7280]">{t('profile.private_chambers')}</p>
         <h1 className="mb-4 text-4xl font-black text-[#f0ead6]" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
-          Sign in to view your trials
+          {t('profile.sign_in_title')}
         </h1>
         <p className="mx-auto mb-8 max-w-md text-sm leading-relaxed text-[#9ca3af]">
-          Your profile keeps your private, public, pending, and appealed cases in one place.
+          {t('profile.sign_in_subtitle')}
         </p>
         <button
           onClick={signIn}
           className="rounded-xl bg-[#d4a853] px-6 py-3 text-sm font-bold text-[#0a0a0f] transition-colors hover:bg-[#e8c477]"
         >
-          Sign in with Google
+          {t('profile.sign_in_button')}
         </button>
       </div>
     )
@@ -163,7 +166,7 @@ export function ProfilePage() {
               </div>
             )}
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#6b7280]">Private profile</p>
+              <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#6b7280]">{t('profile.private_profile')}</p>
               <h1 className="text-3xl font-black text-[#f0ead6]" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
                 {user.displayName}
               </h1>
@@ -171,7 +174,7 @@ export function ProfilePage() {
             </div>
           </div>
           <div className="rounded-2xl border border-[#1e1e2e] bg-[#0c0c14] px-4 py-3 text-left sm:text-right">
-            <p className="text-[10px] uppercase tracking-widest text-[#6b7280]">Reserved slug</p>
+            <p className="text-[10px] uppercase tracking-widest text-[#6b7280]">{t('profile.reserved_slug')}</p>
             <p className="text-sm font-bold text-[#d4a853]">/{user.profileSlug}</p>
           </div>
         </div>
@@ -179,19 +182,19 @@ export function ProfilePage() {
 
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#6b7280]">Case files</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#6b7280]">{t('profile.case_files')}</p>
           <h2 className="text-2xl font-black text-[#f0ead6]" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
-            {trials.length} owned {trials.length === 1 ? 'trial' : 'trials'}
+            {trials.length} {trials.length === 1 ? t('profile.owned_trial_singular') : t('profile.owned_trial_plural')}
           </h2>
         </div>
         <Link to="/" className="text-sm text-[#d4a853] transition-colors hover:text-[#e8c477]">
-          File a new case
+          {t('profile.file_new_case')}
         </Link>
       </div>
 
       {loading ? (
         <div className="rounded-2xl border border-[#1e1e2e] bg-[#14141f] p-8 text-center text-sm text-[#6b7280]">
-          Retrieving your case files...
+          {t('profile.retrieving')}
         </div>
       ) : error ? (
         <div className="rounded-2xl border border-[#dc2626]/30 bg-[rgba(220,38,38,0.06)] p-5 text-sm text-[#ef4444]">
@@ -199,12 +202,12 @@ export function ProfilePage() {
         </div>
       ) : trials.length === 0 ? (
         <div className="rounded-2xl border border-[#1e1e2e] bg-[#14141f] p-8 text-center">
-          <p className="mb-4 text-sm text-[#9ca3af]">No trials in your chambers yet.</p>
+          <p className="mb-4 text-sm text-[#9ca3af]">{t('profile.no_trials')}</p>
           <Link
             to="/"
             className="inline-block rounded-xl bg-[#d4a853] px-5 py-2.5 text-sm font-bold text-[#0a0a0f] transition-colors hover:bg-[#e8c477]"
           >
-            Start your first trial
+            {t('profile.start_first')}
           </Link>
         </div>
       ) : (
