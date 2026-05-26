@@ -1,3 +1,5 @@
+import type { Locale } from '@the-tribunal/contracts'
+import { t, interpolate } from '../i18n/index.js'
 import type { AppealGround } from '../types.js'
 
 export interface AppealContext {
@@ -12,35 +14,35 @@ export interface AppealContext {
   appealText: string
 }
 
-const APPEAL_GROUND_LABELS: Record<AppealGround, string> = {
-  new_context: 'New context or evidence was missing from the original trial',
-  wrong_tribunal: 'The case was judged by the wrong kind of tribunal',
-  mitigating_context_ignored: 'The original court ignored important mitigating circumstances',
-  sentence_too_harsh: 'The verdict may be fair, but the sentence was excessive',
-  reasoning_flawed: "The original court's reasoning was inconsistent, unfair, or missed the point",
-  verdict_too_soft: 'The original court was too lenient',
+/**
+ * Resolve a human-readable label for the given appeal ground in the requested locale.
+ * Falls back to English key-by-key.
+ */
+export function getAppealGroundLabel(ground: AppealGround, locale?: Locale): string {
+  return t(`appeal.ground.${ground}`, locale)
 }
 
-export function formatAppealBlock(ctx: AppealContext): string {
+export function formatAppealBlock(ctx: AppealContext, locale?: Locale): string {
+  const l = locale
   const parts = [
-    `\n--- APPEAL CONTEXT ---`,
-    `This is an APPELLATE HEARING. The case was previously tried and a verdict was rendered. A new court is now reviewing the original ruling on appeal.`,
+    `\n--- ${t('appeal.context_section_header', l)} ---`,
+    t('appeal.context_header', l),
     ``,
-    `Original tribunal: ${ctx.originalTribunalType} Tribunal`,
-    `Original charge: ${ctx.originalCharge}`,
-    `Original verdict: ${ctx.originalVerdict}`,
-    `Original reasoning: """${ctx.originalFinalReasoning}"""`,
-    `Original sentence: ${ctx.originalSentence}`,
+    interpolate(t('appeal.context_original_tribunal', l), { type: ctx.originalTribunalType }),
+    interpolate(t('appeal.context_original_charge', l), { charge: ctx.originalCharge }),
+    interpolate(t('appeal.context_original_verdict', l), { verdict: ctx.originalVerdict }),
+    `${t('appeal.context_original_reasoning', l)} """${ctx.originalFinalReasoning}"""`,
+    interpolate(t('appeal.context_original_sentence', l), { sentence: ctx.originalSentence }),
     ``,
-    `Appeal ground: ${APPEAL_GROUND_LABELS[ctx.appealGround]}`,
+    interpolate(t('appeal.context_appeal_ground', l), { ground: getAppealGroundLabel(ctx.appealGround, l) }),
   ]
 
   if (ctx.appealText) {
-    parts.push(`Appellant's explanation: """${ctx.appealText}"""`)
+    parts.push(`${t('appeal.context_appellant_explanation', l)} """${ctx.appealText}"""`)
   }
 
-  parts.push(`New appellate tribunal: ${ctx.newTribunalType} Tribunal`)
-  parts.push(`--- END APPEAL CONTEXT ---\n`)
+  parts.push(interpolate(t('appeal.context_new_tribunal', l), { type: ctx.newTribunalType }))
+  parts.push(`--- ${t('appeal.context_section_header', l)} ---\n`)
 
   return parts.join('\n')
 }

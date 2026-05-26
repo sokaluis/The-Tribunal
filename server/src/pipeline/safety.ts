@@ -1,3 +1,6 @@
+import type { Locale } from '@the-tribunal/contracts'
+import { t } from '../i18n/index.js'
+
 const HIGH_RISK_PATTERNS = [
   /\bsuicid(e|al|e ideation)\b/i,
   /\bself.?harm\b/i,
@@ -34,10 +37,18 @@ export const SAFETY_RESOURCES = [
   { label: 'Emergency Services', value: 'Call your local emergency number (911, 999, 112)' },
 ]
 
-export const SAFETY_MESSAGE =
-  "We noticed your submission touches on something serious, and The Tribunal is not the right place for it. " +
-  "If you or someone you know is struggling, please reach out to a crisis resource or trusted person. " +
-  "You don't have to face this alone."
+/** Legacy English-only constants — preserved for backward compatibility. */
+export const SAFETY_MESSAGE = t('safety.crisis_message', 'en')
 
-export const CONTENT_POLICY_MESSAGE =
-  "The Tribunal can't hear this case. Submissions that promote hatred, violence against groups, or harmful extremist content fall outside what this court adjudicates."
+/** Legacy English-only constants — preserved for backward compatibility. */
+export const CONTENT_POLICY_MESSAGE = t('safety.content_policy_message', 'en')
+
+/** Locale-aware safety message for the pipeline. */
+export function getSafetyMessage(locale?: Locale): string {
+  return t('safety.crisis_message', locale)
+}
+
+/** Locale-aware content policy message for the pipeline. */
+export function getContentPolicyMessage(locale?: Locale): string {
+  return t('safety.content_policy_message', locale)
+}

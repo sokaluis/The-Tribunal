@@ -1,4 +1,6 @@
+import type { Locale } from '@the-tribunal/contracts'
 import { z } from 'zod'
+import { t } from '../i18n/index.js'
 import { callOpenRouterWithRetry } from './openrouter.js'
 import {
   normalizePrompt,
@@ -88,9 +90,10 @@ export interface NormalizeResult {
 export async function runNormalize(
   caseText: string,
   tribunal: TribunalType,
-  appealContext?: AppealContext | null
+  appealContext?: AppealContext | null,
+  locale?: Locale
 ): Promise<NormalizeResult> {
-  const prompt = normalizePrompt(caseText, tribunal, appealContext ?? null)
+  const prompt = normalizePrompt(caseText, tribunal, appealContext ?? null, locale)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.3, maxTokens: 400 })
@@ -119,9 +122,10 @@ export async function runProsecution(
   caseText: string,
   caseSummary: string,
   tribunal: TribunalType,
-  appealContext?: AppealContext | null
+  appealContext?: AppealContext | null,
+  locale?: Locale
 ): Promise<ProsecutionResult> {
-  const prompt = prosecutionPrompt(caseText, caseSummary, tribunal, appealContext ?? null)
+  const prompt = prosecutionPrompt(caseText, caseSummary, tribunal, appealContext ?? null, locale)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.9, maxTokens: 600 })
@@ -149,9 +153,10 @@ export async function runDefense(
   caseText: string,
   caseSummary: string,
   tribunal: TribunalType,
-  appealContext?: AppealContext | null
+  appealContext?: AppealContext | null,
+  locale?: Locale
 ): Promise<DefenseResult> {
-  const prompt = defensePrompt(caseText, caseSummary, tribunal, appealContext ?? null)
+  const prompt = defensePrompt(caseText, caseSummary, tribunal, appealContext ?? null, locale)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.9, maxTokens: 600 })
@@ -185,9 +190,10 @@ export async function runPanel(
   prosecutionArg: string,
   defenseArg: string,
   tribunal: TribunalType,
-  appealContext?: AppealContext | null
+  appealContext?: AppealContext | null,
+  locale?: Locale
 ): Promise<PanelResult> {
-  const prompt = panelPrompt(caseText, caseSummary, prosecutionArg, defenseArg, tribunal, appealContext ?? null)
+  const prompt = panelPrompt(caseText, caseSummary, prosecutionArg, defenseArg, tribunal, appealContext ?? null, locale)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.85, maxTokens: 1200 })
@@ -235,7 +241,8 @@ export async function runFinalVerdict(
   defenseArg: string,
   panelJudgments: Array<{ agentName: string; judgment: string; leaning: string }>,
   tribunal: TribunalType,
-  appealContext?: AppealContext | null
+  appealContext?: AppealContext | null,
+  locale?: Locale
 ): Promise<FinalVerdictResult> {
   const prompt = finalVerdictPrompt(
     caseText,
@@ -246,7 +253,8 @@ export async function runFinalVerdict(
     defenseArg,
     panelJudgments,
     tribunal,
-    appealContext ?? null
+    appealContext ?? null,
+    locale
   )
 
   const { content, model, rawBody } = await callOpenRouterWithRetry([
@@ -254,6 +262,10 @@ export async function runFinalVerdict(
   ], { temperature: 0.65, maxTokens: 900 })
 
   const parsed = FinalVerdictSchema.parse(parseJson(content))
+
+  const shareHeadline = appealContext
+    ? t('share.appellate_headline', locale)
+    : t('share.tribunal_headline', locale)
 
   return {
     verdict: parsed.verdict,
@@ -264,7 +276,7 @@ export async function runFinalVerdict(
     rejected: truncateToWordLimit(parsed.rejected, 20),
     shareCard: {
       caseNumber: parsed.shareCard.caseNumber || String(Math.floor(Math.random() * 99999)).padStart(5, '0'),
-      headline: 'THE TRIBUNAL HAS SPOKEN',
+      headline: shareHeadline,
       shortCase: truncateToWordLimit(parsed.shareCard.shortCase, 20),
       verdict: parsed.verdict,
       charge: truncateToWordLimit(parsed.shareCard.charge, 30),

@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
+import { parseLocale } from '@the-tribunal/contracts'
+import type { Locale } from '@the-tribunal/contracts'
 import { db } from '../db/index.js'
 import { trials, trialTurns, panelJudgments } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
@@ -8,6 +10,7 @@ import { TRIBUNAL_IDS } from '../tribunals.js'
 import { runPipeline, SAFETY_RESOURCES } from '../pipeline/index.js'
 import type { TrialResponse } from '../types.js'
 import { APPEAL_GROUNDS } from '../types.js'
+import { t } from '../i18n/index.js'
 import {
   generateSecretToken,
   getClaimToken,
@@ -34,7 +37,7 @@ function buildTrialResponse(
   trial: typeof trials.$inferSelect,
   panelRows: typeof panelJudgments.$inferSelect[],
   turns: typeof trialTurns.$inferSelect[],
-  options: { exposeAppealOfId?: boolean } = {}
+  options: { exposeAppealOfId?: boolean; locale?: Locale } = {}
 ): TrialResponse {
   if (trial.status === 'pending' || trial.status === 'processing') {
     return {
@@ -48,7 +51,7 @@ function buildTrialResponse(
     return {
       id: trial.id,
       status: 'failed',
-      error: 'Something went wrong during the trial. Please try again.',
+      error: t('trial.error_message', options.locale),
     }
   }
 
@@ -56,7 +59,7 @@ function buildTrialResponse(
     return {
       id: trial.id,
       status: 'safety_blocked',
-      safetyMessage: trial.safetyMessage ?? 'This submission could not be processed.',
+      safetyMessage: trial.safetyMessage ?? t('trial.safety_default', options.locale),
       safetyType: (trial.safetyType as 'crisis' | 'content_policy' | null) ?? 'crisis',
       resources: trial.safetyType === 'content_policy' ? [] : SAFETY_RESOURCES,
     }
@@ -80,11 +83,11 @@ function buildTrialResponse(
     score: trial.score ?? 0,
     scoreLabel: trial.scoreLabel ?? '',
     prosecution: {
-      title: 'The case against you',
+      title: t('trial.prosecution_title', options.locale),
       argument: prosecuteTurn ? JSON.parse(prosecuteTurn.contentJson).argument : '',
     },
     defense: {
-      title: 'The best defense',
+      title: t('trial.defense_title', options.locale),
       argument: defendTurn ? JSON.parse(defendTurn.contentJson).argument : '',
     },
     panelJudgments: panelRows.map((p) => ({
@@ -132,6 +135,7 @@ router.post('/', async (req, res) => {
     }
 
     const { caseText, tribunalType } = body.data
+    const locale = parseLocale(req.body?.locale)
     const id = nanoid(12)
     const createdAt = new Date().toISOString()
     const claimToken = user ? null : generateSecretToken()
@@ -148,7 +152,7 @@ router.post('/', async (req, res) => {
     })
 
     setImmediate(() => {
-      runPipeline(id).catch((err) => {
+      runPipeline(id, locale).catch((err) => {
         console.error(`[Route] Unhandled pipeline error for ${id}:`, err)
       })
     })
@@ -227,6 +231,7 @@ router.post('/:id/appeal', async (req, res) => {
     }
 
     const { tribunalType, appealGround, appealText } = body.data
+    const locale = parseLocale(req.body?.locale)
 
     const id = nanoid(12)
     const createdAt = new Date().toISOString()
@@ -247,7 +252,7 @@ router.post('/:id/appeal', async (req, res) => {
     })
 
     setImmediate(() => {
-      runPipeline(id).catch((err) => {
+      runPipeline(id, locale).catch((err) => {
         console.error(`[Route] Unhandled pipeline error for appeal ${id}:`, err)
       })
     })
