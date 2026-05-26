@@ -10,6 +10,9 @@ importers:
 
   client:
     dependencies:
+      '@the-tribunal/contracts':
+        specifier: workspace:*
+        version: link:../packages/contracts
       html-to-image:
         specifier: ^1.11.13
         version: 1.11.13
