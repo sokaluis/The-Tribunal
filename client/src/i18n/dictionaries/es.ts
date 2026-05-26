@@ -28,6 +28,7 @@ export const es: Record<string, string> = {
     'Presentá un dilema, confesión, opinión o idea. Los jueces IA ya lo vieron todo y juzgaron cosas peores.',
   'home.cta_button': 'Iniciar juicio',
   'home.examples_label': 'O probá uno de estos',
+  'home.sample_score_label': 'Puntaje de Forro',
 
   // How it works
   'how.section_label': 'Procedimiento',
@@ -104,6 +105,14 @@ export const es: Record<string, string> = {
   'appeal.filing': 'Presentando apelación...',
   'appeal.submit': 'Presentar apelación',
   'appeal.cancel': 'Cancelar',
+
+  // Appeal ground labels (shared with server i18n contract)
+  'appeal.ground.new_context': 'Faltó contexto nuevo o evidencia en el juicio original',
+  'appeal.ground.wrong_tribunal': 'El caso fue juzgado por el tipo de tribunal equivocado',
+  'appeal.ground.mitigating_context_ignored': 'El tribunal original ignoró circunstancias atenuantes importantes',
+  'appeal.ground.sentence_too_harsh': 'El veredicto puede ser justo, pero la sentencia fue excesiva',
+  'appeal.ground.reasoning_flawed': 'El razonamiento del tribunal original fue inconsistente, injusto, o no entendió el punto',
+  'appeal.ground.verdict_too_soft': 'El tribunal original fue demasiado indulgente',
 
   // Trial transcript
   'transcript.arguments': 'Los Argumentos',
@@ -191,6 +200,7 @@ export const es: Record<string, string> = {
   'errors.network': 'Error de red. Intentá de nuevo.',
   'errors.file_appeal': 'No se pudo presentar la apelación',
   'errors.load_trials': 'No se pudieron cargar los juicios',
+  'errors.trial_not_found': 'Juicio no encontrado',
 
   // Document metadata
   'meta.title': 'The Tribunal — Ponete a juicio.',
@@ -199,4 +209,33 @@ export const es: Record<string, string> = {
   'meta.og_title': 'The Tribunal — Ponete a juicio.',
   'meta.og_description':
     'Un tribunal teatral con IA. Presentá un caso. Obtené un veredicto.',
+
+  // Verdict card labels
+  'verdict.card_case_number': 'Caso n.°',
+  'verdict.card_the_tribunal': 'El Tribunal',
+  'verdict.card_the_case': 'El caso',
+  'verdict.card_charge': 'Cargo',
+  'verdict.card_court_recognizes': 'El tribunal reconoce',
+  'verdict.card_court_rejects': 'El tribunal rechaza',
+  'verdict.card_sentence': 'Sentencia',
+
+  // Share copy text labels
+  'share.copied_headline': 'EL TRIBUNAL HA HABLADO',
+  'share.copied_case': 'Caso',
+  'share.copied_tribunal': 'Tribunal',
+  'share.copied_verdict': 'Veredicto',
+  'share.copied_score': 'Puntaje',
+  'share.copied_charge': 'Cargo',
+  'share.copied_court_recognizes': 'El tribunal reconoce',
+  'share.copied_court_rejects': 'El tribunal rechaza',
+  'share.copied_sentence': 'Sentencia',
+  'share.copied_tried_at': 'Juzgado en',
+
+  // Tribunal display names (client-side lookup)
+  'tribunal.moral.name': 'Tribunal Moral',
+  'tribunal.more_info': 'Más información sobre',
+  'tribunal.relationship.name': 'Tribunal de Relaciones',
+  'tribunal.idea.name': 'Tribunal de Ideas',
+  'tribunal.opinion.name': 'Tribunal de Opiniones',
+  'tribunal.roast.name': 'Tribunal de la Cachada',
 }

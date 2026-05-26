@@ -15,6 +15,7 @@ import {
 import type { AppealContext } from './appeal-context.js'
 import type { AppealGround } from '../types.js'
 import { storeRawLlmResponses } from '../security.js'
+import { t } from '../i18n/index.js'
 
 export type { AppealContext }
 
@@ -198,7 +199,7 @@ export async function runPipeline(trialId: string, locale?: Locale): Promise<voi
       charge: prosecutionResult.charge,
       verdict: finalResult.verdict,
       score: finalResult.score,
-      scoreLabel: tribunal.scoreLabel,
+      scoreLabel: t(`tribunal.${trial.tribunalType}.score_label`, effectiveLocale),
       finalReasoning: finalResult.finalReasoning,
       sentence: finalResult.sentence,
       shareCardJson: JSON.stringify(finalResult.shareCard),

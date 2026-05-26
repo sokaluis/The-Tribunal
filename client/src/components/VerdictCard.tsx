@@ -2,6 +2,7 @@ import { forwardRef } from 'react'
 import type { ShareCard } from '../types'
 import { formatScorePercent } from '../utils/formatScore'
 import { getScoreSeverityColors } from '../utils/scoreSeverity'
+import { useT } from '../i18n'
 
 export type VerdictOrientation = 'vertical' | 'horizontal'
 
@@ -37,6 +38,7 @@ interface Props {
 
 export const VerdictCard = forwardRef<HTMLDivElement, Props>(
   ({ shareCard, score, scoreLabel, tribunalType, caseText, orientation = 'vertical', forExport = false }, ref) => {
+    const t = useT()
     const colors = getScoreSeverityColors(score)
     const isHorizontal = orientation === 'horizontal'
 
@@ -51,15 +53,15 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-[#6b7280] mb-0.5">
-            Case #{shareCard.caseNumber}
+            {t('verdict.card_case_number')} {shareCard.caseNumber}
           </p>
           <p className="text-[10px] uppercase tracking-[0.15em] text-[#9ca3af] capitalize">
-            {tribunalType} Tribunal
+            {t(`tribunal.${tribunalType}.name`)}
           </p>
         </div>
         <div className="text-right">
           <div className="text-xl mb-0.5">⚖</div>
-          <p className="text-[8px] uppercase tracking-[0.2em] text-[#6b7280]">The Tribunal</p>
+          <p className="text-[8px] uppercase tracking-[0.2em] text-[#6b7280]">{t('verdict.card_the_tribunal')}</p>
         </div>
       </div>
     )
@@ -79,7 +81,7 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
       <div className="flex items-start gap-4 mb-4">
         <ScoreBadge score={score} label={scoreLabel} />
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-widest text-[#6b7280] mb-1">The case</p>
+          <p className="text-[10px] uppercase tracking-widest text-[#6b7280] mb-1">{t('verdict.card_the_case')}</p>
           <p className="text-sm text-[#d4cbb8] italic leading-relaxed line-clamp-4">
             {displayCase}
           </p>
@@ -90,15 +92,15 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
     const DetailBlocks = () => (
       <div className="space-y-2.5">
         <div className="rounded-lg p-3" style={{ background: 'rgba(220,38,38,0.06)', borderLeft: '2px solid rgba(220,38,38,0.4)' }}>
-          <p className="text-[9px] uppercase tracking-widest text-[#6b7280] mb-1">Charge</p>
+          <p className="text-[9px] uppercase tracking-widest text-[#6b7280] mb-1">{t('verdict.card_charge')}</p>
           <p className="text-sm text-[#f0ead6] font-medium">{shareCard.charge}</p>
         </div>
         <div className="rounded-lg p-3" style={{ background: 'rgba(22,163,74,0.06)', borderLeft: '2px solid rgba(22,163,74,0.4)' }}>
-          <p className="text-[9px] uppercase tracking-widest text-[#6b7280] mb-1">The court recognizes</p>
+          <p className="text-[9px] uppercase tracking-widest text-[#6b7280] mb-1">{t('verdict.card_court_recognizes')}</p>
           <p className="text-sm text-[#d4cbb8]">{shareCard.recognized}</p>
         </div>
         <div className="rounded-lg p-3" style={{ background: 'rgba(220,38,38,0.06)', borderLeft: '2px solid rgba(220,38,38,0.4)' }}>
-          <p className="text-[9px] uppercase tracking-widest text-[#6b7280] mb-1">The court rejects</p>
+          <p className="text-[9px] uppercase tracking-widest text-[#6b7280] mb-1">{t('verdict.card_court_rejects')}</p>
           <p className="text-sm text-[#d4cbb8]">{shareCard.rejected}</p>
         </div>
       </div>
@@ -109,7 +111,7 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
         className="px-6 py-5 text-center border-t"
         style={{ background: colors.bg, borderColor: colors.border + '80' }}
       >
-        <p className="text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: colors.text }}>Sentence</p>
+        <p className="text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: colors.text }}>{t('verdict.card_sentence')}</p>
         <p className="text-base font-bold text-[#f0ead6] leading-snug">{shareCard.sentence}</p>
       </div>
     )

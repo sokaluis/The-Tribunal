@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppeal } from '../hooks/useAppeal'
 import { useT } from '../i18n'
-import { APPEAL_GROUNDS, APPEAL_GROUND_LABELS } from '../types'
+import { APPEAL_GROUNDS } from '../types'
 import type { TribunalType, AppealGround } from '../types'
 import { TribunalSelectorGrid } from './TribunalSelectorGrid'
 
@@ -87,7 +87,7 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
                   : 'border-[#1e1e2e] hover:border-[#d4a853]/40 hover:bg-[#d4a853]/5'
               }`}
             >
-              <div className="text-xs text-[#f0ead6]">{APPEAL_GROUND_LABELS[ground]}</div>
+              <div className="text-xs text-[#f0ead6]">{t(`appeal.ground.${ground}`)}</div>
             </button>
           ))}
         </div>

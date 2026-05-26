@@ -20,7 +20,7 @@ function InfoTooltip({ tribunal }: TooltipProps) {
         onFocus={() => setVisible(true)}
         onBlur={() => setVisible(false)}
         className="w-4 h-4 rounded-full border border-[#4b5563] text-[#6b7280] hover:border-[#9ca3af] hover:text-[#9ca3af] transition-colors flex items-center justify-center text-[9px] font-bold leading-none cursor-default select-none"
-        aria-label={`More info about ${tribunal.name}`}
+        aria-label={`${t('tribunal.more_info')} ${tribunal.name}`}
       >
         i
       </span>
@@ -90,7 +90,7 @@ export function TribunalSelectorGrid({ tribunals, selected, onSelect, disabled, 
             </div>
             <div className="text-xl mb-1.5">{t.icon}</div>
             <div className={`text-xs font-bold mb-0.5 pr-4 ${isSelected ? 'text-[#d4a853]' : 'text-[#f0ead6]'}`}>
-              {t.name.replace(' Tribunal', '')}
+              {t.name.replace(/\s*Tribunal\s*/gi, '')}
             </div>
             <div className="text-[10px] text-[#6b7280] leading-tight line-clamp-2 pr-4">
               {t.description}

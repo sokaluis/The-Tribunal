@@ -13,15 +13,6 @@ export const APPEAL_GROUNDS = [
 
 export type AppealGround = typeof APPEAL_GROUNDS[number]
 
-export const APPEAL_GROUND_LABELS: Record<AppealGround, string> = {
-  new_context: 'New context or evidence was missing',
-  wrong_tribunal: 'Judged by the wrong tribunal',
-  mitigating_context_ignored: 'Mitigating circumstances ignored',
-  sentence_too_harsh: 'Sentence was too harsh',
-  reasoning_flawed: 'Reasoning was flawed',
-  verdict_too_soft: 'Verdict was too lenient',
-}
-
 export type CurrentStep = 'normalizing' | 'prosecuting' | 'judging' | 'finalizing' | null
 
 export interface TribunalType {
@@ -82,18 +73,21 @@ export interface TrialResult {
   appealGround: AppealGround | null
   appealText: string | null
   isPublic: boolean
+  locale: string
 }
 
 export interface TrialPendingResponse {
   id: string
   status: 'pending' | 'processing'
   currentStep: CurrentStep
+  locale: string
 }
 
 export interface TrialFailedResponse {
   id: string
   status: 'failed'
   error: string
+  locale: string
 }
 
 export interface TrialSafetyBlockedResponse {
@@ -102,6 +96,7 @@ export interface TrialSafetyBlockedResponse {
   safetyMessage: string
   safetyType: 'crisis' | 'content_policy'
   resources: Array<{ label: string; value: string }>
+  locale: string
 }
 
 export type TrialResponse =

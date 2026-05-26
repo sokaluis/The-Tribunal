@@ -28,7 +28,7 @@ export function formatAppealBlock(ctx: AppealContext, locale?: Locale): string {
     `\n--- ${t('appeal.context_section_header', l)} ---`,
     t('appeal.context_header', l),
     ``,
-    interpolate(t('appeal.context_original_tribunal', l), { type: ctx.originalTribunalType }),
+    interpolate(t('appeal.context_original_tribunal', l), { type: t(`tribunal.${ctx.originalTribunalType}.name`, l) }),
     interpolate(t('appeal.context_original_charge', l), { charge: ctx.originalCharge }),
     interpolate(t('appeal.context_original_verdict', l), { verdict: ctx.originalVerdict }),
     `${t('appeal.context_original_reasoning', l)} """${ctx.originalFinalReasoning}"""`,
@@ -41,7 +41,7 @@ export function formatAppealBlock(ctx: AppealContext, locale?: Locale): string {
     parts.push(`${t('appeal.context_appellant_explanation', l)} """${ctx.appealText}"""`)
   }
 
-  parts.push(interpolate(t('appeal.context_new_tribunal', l), { type: ctx.newTribunalType }))
+  parts.push(interpolate(t('appeal.context_new_tribunal', l), { type: t(`tribunal.${ctx.newTribunalType}.name`, l) }))
   parts.push(`--- ${t('appeal.context_section_header', l)} ---\n`)
 
   return parts.join('\n')

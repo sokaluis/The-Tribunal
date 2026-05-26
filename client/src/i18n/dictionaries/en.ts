@@ -28,6 +28,7 @@ export const en: Record<string, string> = {
     'Submit a dilemma, confession, opinion, or idea. The AI judges have seen everything and judged worse.',
   'home.cta_button': 'Start Trial',
   'home.examples_label': 'Or try one of these',
+  'home.sample_score_label': 'Asshole Score',
 
   // How it works
   'how.section_label': 'Procedure',
@@ -103,6 +104,14 @@ export const en: Record<string, string> = {
   'appeal.filing': 'Filing appeal...',
   'appeal.submit': 'File appeal',
   'appeal.cancel': 'Cancel',
+
+  // Appeal ground labels (shared with server i18n contract)
+  'appeal.ground.new_context': 'New context or evidence was missing from the original trial',
+  'appeal.ground.wrong_tribunal': 'The case was judged by the wrong kind of tribunal',
+  'appeal.ground.mitigating_context_ignored': 'The original court ignored important mitigating circumstances',
+  'appeal.ground.sentence_too_harsh': 'The verdict may be fair, but the sentence was excessive',
+  'appeal.ground.reasoning_flawed': "The original court's reasoning was inconsistent, unfair, or missed the point",
+  'appeal.ground.verdict_too_soft': 'The original court was too lenient',
 
   // Trial transcript
   'transcript.arguments': 'The Arguments',
@@ -190,6 +199,7 @@ export const en: Record<string, string> = {
   'errors.network': 'Network error. Please try again.',
   'errors.file_appeal': 'Failed to file appeal',
   'errors.load_trials': 'Failed to load trials',
+  'errors.trial_not_found': 'Trial not found',
 
   // Document metadata
   'meta.title': 'The Tribunal — Put yourself on trial.',
@@ -198,4 +208,33 @@ export const en: Record<string, string> = {
   'meta.og_title': 'The Tribunal — Put yourself on trial.',
   'meta.og_description':
     'A theatrical AI court. Submit a case. Get a verdict.',
+
+  // Verdict card labels
+  'verdict.card_case_number': 'Case #',
+  'verdict.card_the_tribunal': 'The Tribunal',
+  'verdict.card_the_case': 'The case',
+  'verdict.card_charge': 'Charge',
+  'verdict.card_court_recognizes': 'The court recognizes',
+  'verdict.card_court_rejects': 'The court rejects',
+  'verdict.card_sentence': 'Sentence',
+
+  // Share copy text labels
+  'share.copied_headline': 'THE TRIBUNAL HAS SPOKEN',
+  'share.copied_case': 'Case',
+  'share.copied_tribunal': 'Tribunal',
+  'share.copied_verdict': 'Verdict',
+  'share.copied_score': 'Score',
+  'share.copied_charge': 'Charge',
+  'share.copied_court_recognizes': 'The court recognizes',
+  'share.copied_court_rejects': 'The court rejects',
+  'share.copied_sentence': 'Sentence',
+  'share.copied_tried_at': 'Tried at',
+
+  // Tribunal display names (client-side lookup)
+  'tribunal.moral.name': 'Moral Tribunal',
+  'tribunal.more_info': 'More info about',
+  'tribunal.relationship.name': 'Relationship Tribunal',
+  'tribunal.idea.name': 'Idea Tribunal',
+  'tribunal.opinion.name': 'Opinion Tribunal',
+  'tribunal.roast.name': 'Roast Tribunal',
 }

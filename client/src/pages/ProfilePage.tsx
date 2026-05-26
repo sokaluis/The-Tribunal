@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useT } from '../i18n'
-import { APPEAL_GROUND_LABELS } from '../types'
 import type { AppealGround, TrialStatus } from '../types'
 import { formatScorePercent } from '../utils/formatScore'
 
@@ -20,6 +19,7 @@ interface ProfileTrial {
   appealGround: AppealGround | null
   createdAt: string
   completedAt: string | null
+  locale: string
 }
 
 const STATUS_LABEL_KEYS: Record<TrialStatus, string> = {
@@ -66,16 +66,16 @@ function TrialCard({ trial }: { trial: ProfileTrial }) {
 
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="mb-1 text-xs uppercase tracking-widest text-[#6b7280]">
-            {trial.tribunalType} tribunal · {formatDate(trial.createdAt)}
-          </p>
+            <p className="mb-1 text-xs uppercase tracking-widest text-[#6b7280]">
+              {t(`tribunal.${trial.tribunalType}.name`)} · {formatDate(trial.createdAt)}
+            </p>
           <h2 className="mb-2 text-lg font-black leading-tight text-[#f0ead6]" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
             {title}
           </h2>
           <p className="line-clamp-2 text-sm leading-relaxed text-[#9ca3af]">{summary}</p>
           {trial.appealGround && (
             <p className="mt-2 text-xs text-[#6b7280]">
-              {t('profile.grounds')} <span className="text-[#9ca3af]">{APPEAL_GROUND_LABELS[trial.appealGround]}</span>
+              {t('profile.grounds')} <span className="text-[#9ca3af]">{t(`appeal.ground.${trial.appealGround}`)}</span>
             </p>
           )}
         </div>
@@ -107,14 +107,14 @@ export function ProfilePage() {
     fetch('/api/profile/trials', { credentials: 'include' })
       .then(async (res) => {
         const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Failed to load trials')
+        if (!res.ok) throw new Error(data.error || t('errors.load_trials'))
         return data as { trials: ProfileTrial[] }
       })
       .then((data) => {
         if (!cancelled) setTrials(data.trials)
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load trials')
+        if (!cancelled) setError(err instanceof Error ? err.message : t('errors.load_trials'))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)

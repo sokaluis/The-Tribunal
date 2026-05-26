@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTrial } from '../hooks/useTrial'
 import { usePublish } from '../hooks/usePublish'
-import { useT } from '../i18n'
+import { useLocale } from '../i18n'
 import { TrialProgress } from '../components/TrialProgress'
 import { VerdictCard } from '../components/VerdictCard'
 import { CaseSection, ArgumentsSection, PanelSection, RulingSection } from '../components/TrialTranscript'
@@ -11,7 +11,6 @@ import { AppealSelector } from '../components/AppealSelector'
 import { SafetyBlockedView } from '../components/SafetyBlockedView'
 import { ErrorState } from '../components/ErrorState'
 import type { TrialResult, TribunalType, AppealGround } from '../types'
-import { APPEAL_GROUND_LABELS } from '../types'
 import { formatScorePercent } from '../utils/formatScore'
 import { getScoreSeverityColors } from '../utils/scoreSeverity'
 
@@ -28,7 +27,7 @@ function TrialSection({ children }: { children: React.ReactNode }) {
 }
 
 function AppealBanner({ trial }: { trial: TrialResult }) {
-  const t = useT()
+  const { t } = useLocale()
   if (!trial.appealOfId || !trial.appealGround) return null
   return (
     <div className="mb-2 rounded-lg border border-[#d4a853]/20 bg-[#d4a853]/5 px-4 py-3 text-center animate-fade-in">
@@ -38,7 +37,7 @@ function AppealBanner({ trial }: { trial: TrialResult }) {
         <Link to={`/trial/${trial.appealOfId}`} className="text-[#d4a853] hover:underline">
           {t('trial.original_verdict')}
         </Link>
-        {' '}{t('trial.on_grounds')} <span className="text-[#f0ead6]">{APPEAL_GROUND_LABELS[trial.appealGround as AppealGround]}</span>
+        {' '}{t('trial.on_grounds')} <span className="text-[#f0ead6]">{t(`appeal.ground.${trial.appealGround}`)}</span>
       </p>
       {trial.appealText && (
         <p className="text-xs text-[#6b7280] mt-1.5 italic max-w-lg mx-auto">"{trial.appealText}"</p>
@@ -48,7 +47,7 @@ function AppealBanner({ trial }: { trial: TrialResult }) {
 }
 
 function VerdictHero({ trial }: { trial: TrialResult }) {
-  const t = useT()
+  const { t } = useLocale()
   const colors = getScoreSeverityColors(trial.score)
   const isAppeal = !!trial.appealOfId
   return (
@@ -68,7 +67,7 @@ function VerdictHero({ trial }: { trial: TrialResult }) {
         </h1>
       </div>
       <div className="flex items-center justify-center gap-3 text-sm text-[#9ca3af]">
-        <span className="capitalize">{trial.tribunalType} Tribunal</span>
+        <span className="capitalize">{t(`tribunal.${trial.tribunalType}.name`)}</span>
         <span className="text-[#2a2a3e]">·</span>
         <span>
           {trial.scoreLabel}:{' '}
@@ -82,7 +81,7 @@ function VerdictHero({ trial }: { trial: TrialResult }) {
 }
 
 function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boolean }) {
-  const t = useT()
+  const { t } = useLocale()
   const { publish, published, loading, error } = usePublish(isPublic)
   const [confirming, setConfirming] = useState(false)
 
@@ -139,14 +138,14 @@ export function TrialPage() {
   const { id } = useParams<{ id: string }>()
   const { data, loading, error } = useTrial(id)
   const [tribunals, setTribunals] = useState<TribunalType[]>([])
-  const t = useT()
+  const { t, locale } = useLocale()
 
   useEffect(() => {
-    fetch('/api/tribunals')
+    fetch(`/api/tribunals?locale=${locale}`)
       .then((r) => r.json())
       .then(setTribunals)
       .catch(console.error)
-  }, [])
+  }, [locale])
 
   if (loading && !data) {
     return (
