@@ -57,10 +57,11 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
 ```
 
-2. Install dependencies:
+2. Install dependencies and build shared contracts (required for client and server imports):
 
 ```bash
 pnpm install
+pnpm --filter @the-tribunal/contracts build
 ```
 
 ## Running
