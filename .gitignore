@@ -31,3 +31,7 @@ Thumbs.db
 *.suo
 *.sw?
 *.local
+
+# Agent infrastructure
+.atl/
+.serena/
