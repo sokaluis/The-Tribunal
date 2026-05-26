@@ -77,6 +77,7 @@ const MIGRATION_SQL = `
     is_public INTEGER NOT NULL DEFAULT 0,
     model_used TEXT,
     pipeline_version TEXT NOT NULL DEFAULT '1.0',
+    locale TEXT NOT NULL DEFAULT 'en',
     raw_llm_responses TEXT,
     error_message TEXT,
     created_at TEXT NOT NULL,
@@ -118,6 +119,7 @@ async function ensureColumn(tableName: string, columnName: string, definition: s
 async function runCompatibilityMigrations() {
   await ensureColumn('trials', 'user_id', 'user_id TEXT REFERENCES users(id)')
   await ensureColumn('trials', 'claim_token_hash', 'claim_token_hash TEXT')
+  await ensureColumn('trials', 'locale', "locale TEXT NOT NULL DEFAULT 'en'")
   await libsqlClient.execute(`CREATE INDEX IF NOT EXISTS idx_trials_user_id ON trials(user_id)`)
   await libsqlClient.execute(`CREATE INDEX IF NOT EXISTS idx_trials_claim_token_hash ON trials(claim_token_hash)`)
 
