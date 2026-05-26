@@ -1,3 +1,5 @@
+import type { Locale } from '@the-tribunal/contracts'
+
 export type TrialStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'safety_blocked'
 
 export const APPEAL_GROUNDS = [
@@ -44,6 +46,7 @@ export interface TrialResult {
   createdAt: string
   completedAt: string | null
   status: 'completed'
+  locale: Locale
   charge: string
   verdict: string
   score: number
@@ -69,12 +72,14 @@ export interface TrialResult {
 export interface TrialPendingResponse {
   id: string
   status: 'pending' | 'processing'
+  locale: Locale
   currentStep: CurrentStep | null
 }
 
 export interface TrialFailedResponse {
   id: string
   status: 'failed'
+  locale: Locale
   error: string
 }
 
@@ -86,6 +91,7 @@ export interface SafetyResource {
 export interface TrialSafetyBlockedResponse {
   id: string
   status: 'safety_blocked'
+  locale: Locale
   safetyMessage: string
   safetyType: 'crisis' | 'content_policy'
   resources: SafetyResource[]

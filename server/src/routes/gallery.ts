@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { db } from '../db/index.js'
 import { trials, panelJudgments } from '../db/schema.js'
 import { eq, and, desc, inArray } from 'drizzle-orm'
+import { parseLocale } from '@the-tribunal/contracts'
 import {
   parseGallerySort,
   computePanelDisagreement,
@@ -53,6 +54,7 @@ router.get('/', async (req, res) => {
           caseText: t.caseText,
           sentence: t.sentence ?? '',
           isExample: t.id.startsWith('sample_'),
+          locale: parseLocale(t.locale),
           shareCard: JSON.parse(t.shareCardJson!),
           createdAt: t.createdAt,
           panelDisagreement: computePanelDisagreement(leanings),
