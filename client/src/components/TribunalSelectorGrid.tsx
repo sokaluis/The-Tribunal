@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { TribunalType } from '../types'
+import { useT } from '../i18n'
 
 interface TooltipProps {
   tribunal: TribunalType
 }
 
 function InfoTooltip({ tribunal }: TooltipProps) {
+  const t = useT()
   const [visible, setVisible] = useState(false)
 
   return (
@@ -31,15 +33,15 @@ function InfoTooltip({ tribunal }: TooltipProps) {
           <p className="text-[11px] text-[#9ca3af] leading-snug mb-2">{tribunal.description}</p>
           <div className="border-t border-[#1e1e2e] pt-2 space-y-1.5">
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">Tone</p>
+              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">{t('tribunal.tone')}</p>
               <p className="text-[11px] text-[#9ca3af] italic">{tribunal.tone}</p>
             </div>
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">Score</p>
+              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">{t('tribunal.score')}</p>
               <p className="text-[11px] text-[#9ca3af]">{tribunal.scoreLabel}</p>
             </div>
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">Panel</p>
+              <p className="text-[9px] uppercase tracking-widest text-[#4b5563] mb-0.5">{t('tribunal.panel')}</p>
               <p className="text-[11px] text-[#9ca3af]">
                 {tribunal.panelAgents.map((a) => a.name).join(', ')}
               </p>

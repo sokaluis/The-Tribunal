@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { getTrialClaimToken } from '../utils/trialClaims'
+import { useT } from '../i18n'
 
 export function usePublish(initialPublished = false) {
+  const t = useT()
   const [published, setPublished] = useState(initialPublished)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -18,13 +20,13 @@ export function usePublish(initialPublished = false) {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Failed to publish')
+        setError(data.error || t('errors.network'))
         return false
       }
       setPublished(true)
       return true
     } catch {
-      setError('Network error')
+      setError(t('errors.network'))
       return false
     } finally {
       setLoading(false)

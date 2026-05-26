@@ -1,22 +1,23 @@
 import type { PanelJudgment } from '../types'
+import { useT } from '../i18n'
 
 const LEANING_CONFIG = {
   guilty: {
-    label: 'Guilty',
+    dictKey: 'judgment.guilty' as const,
     bg: 'rgba(220,38,38,0.08)',
     border: 'rgba(220,38,38,0.25)',
     dot: '#dc2626',
     text: '#ef4444',
   },
   not_guilty: {
-    label: 'Not Guilty',
+    dictKey: 'judgment.not_guilty' as const,
     bg: 'rgba(22,163,74,0.08)',
     border: 'rgba(22,163,74,0.25)',
     dot: '#16a34a',
     text: '#22c55e',
   },
   complicated: {
-    label: 'Complicated',
+    dictKey: 'judgment.complicated' as const,
     bg: 'rgba(217,119,6,0.08)',
     border: 'rgba(217,119,6,0.25)',
     dot: '#d97706',
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export function PanelJudgmentCard({ judgment, index }: Props) {
+  const t = useT()
   const config = LEANING_CONFIG[judgment.leaning]
 
   return (
@@ -52,7 +54,7 @@ export function PanelJudgmentCard({ judgment, index }: Props) {
           className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
           style={{ background: config.border, color: config.text }}
         >
-          {config.label}
+          {t(config.dictKey)}
         </span>
       </div>
       <p className="text-sm text-[#d4cbb8] leading-relaxed mb-2">{judgment.judgment}</p>

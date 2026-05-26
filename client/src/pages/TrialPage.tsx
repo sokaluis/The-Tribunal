@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTrial } from '../hooks/useTrial'
 import { usePublish } from '../hooks/usePublish'
+import { useT } from '../i18n'
 import { TrialProgress } from '../components/TrialProgress'
 import { VerdictCard } from '../components/VerdictCard'
 import { CaseSection, ArgumentsSection, PanelSection, RulingSection } from '../components/TrialTranscript'
@@ -27,16 +28,17 @@ function TrialSection({ children }: { children: React.ReactNode }) {
 }
 
 function AppealBanner({ trial }: { trial: TrialResult }) {
+  const t = useT()
   if (!trial.appealOfId || !trial.appealGround) return null
   return (
     <div className="mb-2 rounded-lg border border-[#d4a853]/20 bg-[#d4a853]/5 px-4 py-3 text-center animate-fade-in">
-      <p className="text-[10px] uppercase tracking-widest text-[#d4a853] font-medium mb-1">Appellate Hearing</p>
+      <p className="text-[10px] uppercase tracking-widest text-[#d4a853] font-medium mb-1">{t('trial.appellate_hearing')}</p>
       <p className="text-xs text-[#9ca3af]">
-        Appeal of{' '}
+        {t('trial.appeal_of')}{' '}
         <Link to={`/trial/${trial.appealOfId}`} className="text-[#d4a853] hover:underline">
-          original verdict
+          {t('trial.original_verdict')}
         </Link>
-        {' '}on grounds: <span className="text-[#f0ead6]">{APPEAL_GROUND_LABELS[trial.appealGround as AppealGround]}</span>
+        {' '}{t('trial.on_grounds')} <span className="text-[#f0ead6]">{APPEAL_GROUND_LABELS[trial.appealGround as AppealGround]}</span>
       </p>
       {trial.appealText && (
         <p className="text-xs text-[#6b7280] mt-1.5 italic max-w-lg mx-auto">"{trial.appealText}"</p>
@@ -46,12 +48,13 @@ function AppealBanner({ trial }: { trial: TrialResult }) {
 }
 
 function VerdictHero({ trial }: { trial: TrialResult }) {
+  const t = useT()
   const colors = getScoreSeverityColors(trial.score)
   const isAppeal = !!trial.appealOfId
   return (
     <div className="pt-10 pb-8 text-center animate-fade-in">
       <p className="text-[10px] uppercase tracking-[0.3em] text-[#6b7280] mb-3 font-medium">
-        {isAppeal ? 'The Appellate Tribunal has spoken' : 'The Tribunal has spoken'}
+        {isAppeal ? t('trial.appellate_spoken') : t('trial.tribunal_spoken')}
       </p>
       <div
         className="inline-block rounded-2xl px-6 py-4 mb-4"
@@ -79,14 +82,14 @@ function VerdictHero({ trial }: { trial: TrialResult }) {
 }
 
 function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boolean }) {
+  const t = useT()
   const { publish, published, loading, error } = usePublish(isPublic)
   const [confirming, setConfirming] = useState(false)
 
   if (published) {
     return (
       <span className="text-xs text-[#16a34a] flex items-center gap-1.5">
-        <span>✓</span> Published to 
-        <Link to="/gallery" className="text-[#d4a853] hover:text-[#e8c477] transition-colors">The Gallery</Link>
+        {t('trial.published')}
       </span>
     )
   }
@@ -95,7 +98,7 @@ function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boole
     return (
       <div className="flex flex-col items-center gap-2">
         <p className="text-xs text-[#9ca3af] text-center max-w-[220px]">
-          This will make your case publicly visible in The Gallery.
+          {t('trial.publish_confirm')}
         </p>
         <div className="flex items-center gap-2">
           <button
@@ -103,14 +106,14 @@ function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boole
             disabled={loading}
             className="text-xs text-[#16a34a] hover:text-[#22c55e] transition-colors border border-[rgba(22,163,74,0.3)] rounded-lg px-3 py-1.5 hover:border-[rgba(22,163,74,0.5)] cursor-pointer disabled:opacity-50"
           >
-            {loading ? 'Publishing...' : 'Confirm'}
+            {loading ? t('trial.publishing') : t('trial.confirm')}
           </button>
           <button
             onClick={() => setConfirming(false)}
             disabled={loading}
             className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors border border-[#1e1e2e] rounded-lg px-3 py-1.5 hover:border-[#2a2a3e] cursor-pointer disabled:opacity-50"
           >
-            Cancel
+            {t('trial.cancel')}
           </button>
         </div>
         {error && <p className="text-[10px] text-[#dc2626]">{error}</p>}
@@ -125,7 +128,7 @@ function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boole
         disabled={loading}
         className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors border border-[#1e1e2e] rounded-lg px-4 py-2 hover:border-[#2a2a3e] cursor-pointer disabled:opacity-50"
       >
-        🌐 Publish to The Gallery
+        {t('trial.publish')}
       </button>
       {error && <p className="text-[10px] text-[#dc2626]">{error}</p>}
     </div>
@@ -136,6 +139,7 @@ export function TrialPage() {
   const { id } = useParams<{ id: string }>()
   const { data, loading, error } = useTrial(id)
   const [tribunals, setTribunals] = useState<TribunalType[]>([])
+  const t = useT()
 
   useEffect(() => {
     fetch('/api/tribunals')
@@ -196,16 +200,16 @@ export function TrialPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-24">
       <div className="pt-6 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
         <Link to="/" className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors">
-          ← New trial
+          {t('nav.back_new_trial')}
         </Link>
         <span className="text-[#2a2a3e]">·</span>
         <Link to="/gallery" className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors">
-          The Gallery
+          {t('nav.gallery')}
         </Link>
         {trial.appealOfId && (
           <>
             <span className="text-[#2a2a3e]">·</span>
-            <span className="text-xs text-[#d4a853]">Appeal</span>
+            <span className="text-xs text-[#d4a853]">{t('trial.appeal_tag')}</span>
           </>
         )}
       </div>
