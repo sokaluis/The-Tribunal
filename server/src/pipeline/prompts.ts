@@ -1,3 +1,5 @@
+import type { Locale } from '@the-tribunal/contracts'
+import { t, interpolate } from '../i18n/index.js'
 import type { TribunalType } from '../tribunals.js'
 import { SCORE_SCALE_HINT, APPEAL_SCORE_SCALE_HINT } from '../tribunals.js'
 import type { AppealContext } from './appeal-context.js'
@@ -9,15 +11,22 @@ const FAIRNESS_STANDARD = `Fairness standard:
 - Theatrical does not mean unfair. Be witty, specific, and proportional.
 - Criticize only what is actually present. It is acceptable and often correct to find no case to answer.`
 
-export function normalizePrompt(caseText: string, tribunal: TribunalType, appealContext: AppealContext | null): string {
-  const appealBlock = appealContext ? `\n${formatAppealBlock(appealContext)}\n` : ''
+/** Generate a language instruction that tells the LLM to respond in the given locale. */
+function languageInstruction(locale?: Locale): string {
+  if (!locale || locale === 'en') return ''
+  const langName = locale === 'es' ? 'español' : 'English'
+  return `\n${interpolate(t('prompt.language_instruction', locale), { language: langName })}\n`
+}
+
+export function normalizePrompt(caseText: string, tribunal: TribunalType, appealContext: AppealContext | null, locale?: Locale): string {
+  const appealBlock = appealContext ? `\n${formatAppealBlock(appealContext, locale)}\n` : ''
   const contextNote = appealContext
     ? `This is an appeal of a previous verdict. Summarize the appeal situation, not just the original case.`
     : ''
 
   return `You are the clerk of The Tribunal, a theatrical, whacky AI court. 
   Your job is to process incoming case submissions.
-
+${languageInstruction(locale)}
 Analyze the following submission and return a JSON object with this exact structure:
 {
   "isSafe": true,
@@ -38,7 +47,8 @@ export function prosecutionPrompt(
   caseText: string,
   caseSummary: string,
   tribunal: TribunalType,
-  appealContext: AppealContext | null
+  appealContext: AppealContext | null,
+  locale?: Locale
 ): string {
   if (appealContext) {
     return `You are the prosecutor in ${tribunal.name}, a whacky, theatrical appellate AI court. 
@@ -46,9 +56,9 @@ export function prosecutionPrompt(
     Your job is to argue why the original ruling should STAND, or why the appeal fails. 
     Be sharp, specific, theatrical, and proportional.
     Focus on the weakness of the appeal arguments. Do not invent flaws in the appeal just because this is a court.
-
+${languageInstruction(locale)}
 Tribunal tone: ${tribunal.tone}
-${formatAppealBlock(appealContext)}
+${formatAppealBlock(appealContext, locale)}
 Case summary: """${caseSummary}"""
 Full submission: """${caseText}"""
 
@@ -66,7 +76,7 @@ Return only valid JSON. No markdown fences.`
   Your job is to identify the strongest fair criticism of the submitted behavior, opinion, or idea, if one exists. 
   If the case is harmless, kind, normal, praiseworthy, or too minor to criticize, acknowledge that the prosecution has little or no case.
   Be sharp, specific, theatrical, and proportional. Do not invent a charge just because this is a court.
-
+${languageInstruction(locale)}
 Tribunal tone: ${tribunal.tone}
 ${FAIRNESS_STANDARD}
 
@@ -87,7 +97,8 @@ export function defensePrompt(
   caseText: string,
   caseSummary: string,
   tribunal: TribunalType,
-  appealContext: AppealContext | null
+  appealContext: AppealContext | null,
+  locale?: Locale
 ): string {
   if (appealContext) {
     return `You are the appellate defender in ${tribunal.name}, a whacky, theatrical appellate AI court. 
@@ -95,9 +106,9 @@ export function defensePrompt(
     Make the strongest case for why the original ruling was flawed, unjust, or deserves reconsideration. 
     Be honest; if the appeal is weak, acknowledge it while finding whatever genuine argument exists.
     Be charitable, specific, theatrical, and proportional.
-
+${languageInstruction(locale)}
 Tribunal tone: ${tribunal.tone}
-${formatAppealBlock(appealContext)}
+${formatAppealBlock(appealContext, locale)}
 Case summary: """${caseSummary}"""
 Full submission: """${caseText}"""
 
@@ -117,7 +128,7 @@ Return only valid JSON. No markdown fences.`
   Be honest; if the case is indefensible, say so while finding whatever genuine defense exists.
   If the person did nothing meaningfully wrong, say so directly and defend that conclusion.
   Be charitable, specific, theatrical, and proportional.
-
+${languageInstruction(locale)}
 Tribunal tone: ${tribunal.tone}
 ${FAIRNESS_STANDARD}
 
@@ -140,7 +151,8 @@ export function panelPrompt(
   prosecutionArg: string,
   defenseArg: string,
   tribunal: TribunalType,
-  appealContext: AppealContext | null
+  appealContext: AppealContext | null,
+  locale?: Locale
 ): string {
   const agentInstructions = tribunal.panelAgents
     .map(
@@ -151,7 +163,7 @@ export function panelPrompt(
 
   const agentNames = tribunal.panelAgents.map((a) => a.name).join(', ')
 
-  const appealBlock = appealContext ? `\n${formatAppealBlock(appealContext)}\n` : ''
+  const appealBlock = appealContext ? `\n${formatAppealBlock(appealContext, locale)}\n` : ''
   const appealFraming = appealContext
     ? `This is an APPELLATE HEARING. Each judge must evaluate both the merit of the original ruling AND the strength of the appeal arguments. 
     The "leaning" should reflect whether they believe the appeal should succeed (not_guilty = appeal granted), 
@@ -164,7 +176,7 @@ If the case is harmless, kind, normal, praiseworthy, or too minor to criticize, 
   return `You are running the panel deliberation phase of ${tribunal.name}. You must write judgments for each of the following panel members: ${agentNames}.
 
 Each judge has a distinct perspective and must give their honest assessment. They have heard the case summary, prosecution, and defense.
-${appealFraming}
+${languageInstruction(locale)}${appealFraming}
 
 ${agentInstructions}
 ${appealBlock}
@@ -197,11 +209,16 @@ export function finalVerdictPrompt(
   defenseArg: string,
   panelJudgments: Array<{ agentName: string; judgment: string; leaning: string }>,
   tribunal: TribunalType,
-  appealContext: AppealContext | null
+  appealContext: AppealContext | null,
+  locale?: Locale
 ): string {
   const panelSummary = panelJudgments
     .map((j) => `${j.agentName} (${j.leaning}): ${j.judgment}`)
     .join('\n')
+
+  const shareHeadline = appealContext
+    ? t('share.appellate_headline', locale)
+    : t('share.tribunal_headline', locale)
 
   if (appealContext) {
     const appealVerdicts = [
@@ -215,11 +232,11 @@ export function finalVerdictPrompt(
 
     return `You are the appellate judge of ${tribunal.name}, a whacky, theatrical appellate AI court. This is an APPEAL hearing. You have heard all arguments regarding whether the original ruling should stand or be overturned. Now deliver the appellate verdict.
     Be decisive, theatrical, fair, and proportional. Do not punish the appellant for appealing; evaluate whether the appeal has merit.
-
+${languageInstruction(locale)}
 Tribunal: ${tribunal.name}
 Tone: ${tribunal.tone}
 Score label: ${tribunal.scoreLabel}
-${formatAppealBlock(appealContext)}
+${formatAppealBlock(appealContext, locale)}
 Case: """${caseSummary}"""
 Charge (as framed by prosecution): ${charge}
 Prosecution (arguing original ruling should stand): """${prosecutionArg}"""
@@ -239,7 +256,7 @@ Return a JSON object with this exact structure:
   "rejected": "What the appellate court refuses to accept from the appeal. Max 15 words.",
   "shareCard": {
     "caseNumber": "A random 5-digit number as a string, e.g. '04821'",
-    "headline": "THE APPELLATE TRIBUNAL HAS SPOKEN",
+    "headline": "${shareHeadline}",
     "shortCase": "${shortCase}",
     "verdict": "same as verdict above",
     "charge": "same as the charge",
@@ -256,7 +273,7 @@ Be decisive. The appellate verdict must be clear. Return only valid JSON. No mar
 
   return `You are the final judge of ${tribunal.name}, a whacky, theatrical AI court. You have heard all arguments and panel deliberations. Now deliver the final verdict.
     Be decisive, theatrical, fair, and proportional. If the person did nothing meaningfully wrong, acquit them clearly.
-
+${languageInstruction(locale)}
 Tribunal: ${tribunal.name}
 Tone: ${tribunal.tone}
 Score label: ${tribunal.scoreLabel}
@@ -282,7 +299,7 @@ Return a JSON object with this exact structure:
   "rejected": "What the court refuses to accept as an excuse. Max 15 words.",
   "shareCard": {
     "caseNumber": "A random 6-digit number as a string, e.g. '048217'",
-    "headline": "THE TRIBUNAL HAS SPOKEN",
+    "headline": "${shareHeadline}",
     "shortCase": "${shortCase}",
     "verdict": "same as verdict above",
     "charge": "same as the charge",
