@@ -6,21 +6,24 @@ import { TrialPage } from './pages/TrialPage'
 import { GalleryPage } from './pages/GalleryPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { AuthProvider } from './auth/AuthContext'
+import { LocaleProvider } from './i18n'
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <AuthProvider>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/trial/:id" element={<TrialPage />} />
-            <Route path="/gallery" element={<GalleryPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Routes>
-        </Layout>
-      </AuthProvider>
-    </BrowserRouter>
+    <LocaleProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <AuthProvider>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/trial/:id" element={<TrialPage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+            </Routes>
+          </Layout>
+        </AuthProvider>
+      </BrowserRouter>
+    </LocaleProvider>
   )
 }

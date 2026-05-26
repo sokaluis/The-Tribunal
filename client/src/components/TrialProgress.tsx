@@ -1,16 +1,25 @@
+import { useT } from '../i18n'
+import { useMemo } from 'react'
 import type { CurrentStep } from '../types'
 
-const STEPS: Array<{ step: CurrentStep | null; label: string; sublabel: string }> = [
-  { step: null, label: 'Case filed.', sublabel: 'Your submission is in the hands of the court.' },
-  { step: 'normalizing', label: 'Case filed.', sublabel: 'The clerk is reviewing your submission.' },
-  { step: 'prosecuting', label: 'The prosecution is sharpening its knives.', sublabel: 'The defense is also preparing. They are less enthusiastic.' },
-  { step: 'judging', label: 'The judges are pretending to be impartial.', sublabel: 'The panel has reviewed all arguments and is deliberating.' },
-  { step: 'finalizing', label: 'The verdict is being sealed.', sublabel: 'The final judge is composing the ruling. This is the dramatic part.' },
-]
+function useStepDefs() {
+  const t = useT()
+  return useMemo(
+    () =>
+      [
+        { step: null as CurrentStep | null, label: t('progress.step_0_sublabel'), sublabel: t('progress.step_0_sublabel') },
+        { step: 'normalizing' as const, label: t('progress.step_1_label'), sublabel: t('progress.step_1_sublabel') },
+        { step: 'prosecuting' as const, label: t('progress.step_2_label'), sublabel: t('progress.step_2_sublabel') },
+        { step: 'judging' as const, label: t('progress.step_3_label'), sublabel: t('progress.step_3_sublabel') },
+        { step: 'finalizing' as const, label: t('progress.step_4_label'), sublabel: t('progress.step_4_sublabel') },
+      ] as const,
+    [t],
+  )
+}
 
-function getStepIndex(currentStep: CurrentStep): number {
+function getStepIndex(currentStep: CurrentStep, steps: readonly Readonly<{ step: CurrentStep | null }>[]): number {
   if (currentStep === null) return 0
-  const found = STEPS.findIndex((s) => s.step === currentStep)
+  const found = steps.findIndex((s) => s.step === currentStep)
   return found >= 0 ? found : 0
 }
 
@@ -19,7 +28,9 @@ interface Props {
 }
 
 export function TrialProgress({ currentStep }: Props) {
-  const activeIndex = getStepIndex(currentStep)
+  const t = useT()
+  const STEPS = useStepDefs()
+  const activeIndex = getStepIndex(currentStep, STEPS)
   const active = STEPS[activeIndex]
 
   return (
@@ -53,7 +64,7 @@ export function TrialProgress({ currentStep }: Props) {
       </div>
 
       <p className="text-xs text-[#4b5563] uppercase tracking-widest">
-        Trials typically take 20-40 seconds
+        {t('progress.duration')}
       </p>
     </div>
   )

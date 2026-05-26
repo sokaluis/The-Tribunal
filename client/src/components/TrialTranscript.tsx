@@ -1,5 +1,6 @@
 import type { TrialResult } from '../types'
 import { PanelJudgmentCard } from './PanelJudgmentCard'
+import { useT } from '../i18n'
 
 interface Props {
   trial: TrialResult
@@ -28,10 +29,11 @@ function ArgumentCard({ title, argument, accentColor }: { title: string; argumen
 }
 
 export function ArgumentsSection({ trial }: { trial: TrialResult }) {
+  const t = useT()
   if (!trial.prosecution.argument && !trial.defense.argument) return null
   return (
     <section>
-      <SectionLabel>The Arguments</SectionLabel>
+      <SectionLabel>{t('transcript.arguments')}</SectionLabel>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <ArgumentCard
           title={trial.prosecution.title}
@@ -49,10 +51,11 @@ export function ArgumentsSection({ trial }: { trial: TrialResult }) {
 }
 
 export function PanelSection({ trial }: { trial: TrialResult }) {
+  const t = useT()
   if (trial.panelJudgments.length === 0) return null
   return (
     <section>
-      <SectionLabel>The Panel</SectionLabel>
+      <SectionLabel>{t('transcript.panel')}</SectionLabel>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         {trial.panelJudgments.map((j, i) => (
           <PanelJudgmentCard key={j.agentName} judgment={j} index={i} />
@@ -63,9 +66,10 @@ export function PanelSection({ trial }: { trial: TrialResult }) {
 }
 
 export function CaseSection({ trial }: { trial: TrialResult }) {
+  const t = useT()
   return (
     <section>
-      <SectionLabel>The Case</SectionLabel>
+      <SectionLabel>{t('transcript.case')}</SectionLabel>
       <div className="mx-auto max-w-2xl rounded-xl border border-[#1e1e2e] bg-[#14141f] p-6">
         <p className="text-sm text-[#d4cbb8] leading-relaxed whitespace-pre-wrap">{trial.caseText}</p>
       </div>
@@ -74,10 +78,11 @@ export function CaseSection({ trial }: { trial: TrialResult }) {
 }
 
 export function RulingSection({ trial }: { trial: TrialResult }) {
+  const t = useT()
   if (!trial.finalReasoning) return null
   return (
     <section>
-      <SectionLabel>The Ruling</SectionLabel>
+      <SectionLabel>{t('transcript.ruling')}</SectionLabel>
       <div className="mx-auto rounded-xl border border-[#1e1e2e] bg-[#14141f] p-6">
         <p className="text-sm text-[#d4cbb8] leading-relaxed text-center">{trial.finalReasoning}</p>
       </div>

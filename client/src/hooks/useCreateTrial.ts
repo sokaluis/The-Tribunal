@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { saveTrialClaim } from '../utils/trialClaims'
+import { useLocale } from '../i18n'
 
 interface CreateTrialOptions {
   caseText: string
@@ -15,6 +16,7 @@ interface CreateTrialResult {
 export function useCreateTrial() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { locale, t } = useLocale()
 
   const create = async (options: CreateTrialOptions): Promise<CreateTrialResult | null> => {
     setLoading(true)
@@ -24,18 +26,18 @@ export function useCreateTrial() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(options),
+        body: JSON.stringify({ ...options, locale }),
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Failed to start trial')
+        setError(data.error || t('errors.start_trial'))
         return null
       }
       const result = data as CreateTrialResult
       saveTrialClaim(result.id, result.claimToken)
       return result
     } catch {
-      setError('Network error. Please try again.')
+      setError(t('errors.network'))
       return null
     } finally {
       setLoading(false)

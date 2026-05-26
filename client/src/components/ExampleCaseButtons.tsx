@@ -1,3 +1,5 @@
+import { useT } from '../i18n'
+
 const EXAMPLES = [
   { label: 'Ghosted a friend', text: 'I ghosted a close friend for three weeks because I was overwhelmed and didn\'t know how to explain myself.', tribunal: 'relationship' },
   { label: 'Lied to be kind', text: 'I told a friend their creative project was great when I actually thought it was mediocre, to avoid hurting them.', tribunal: 'moral' },
@@ -11,9 +13,10 @@ interface Props {
 }
 
 export function ExampleCaseButtons({ onSelect }: Props) {
+  const t = useT()
   return (
     <div className="w-full">
-      <p className="text-xs uppercase tracking-widest text-[#6b7280] mb-3 font-medium">Or try one of these</p>
+      <p className="text-xs uppercase tracking-widest text-[#6b7280] mb-3 font-medium">{t('home.examples_label')}</p>
       <div className="flex flex-wrap gap-2">
         {EXAMPLES.map((ex) => (
           <button

@@ -1,3 +1,5 @@
+import { useT } from '../i18n'
+
 const PLACEHOLDER_EXAMPLES = [
   'I ghosted a friend for three weeks because I was overwhelmed and didn\'t want to explain myself.',
   'I lied to avoid hurting someone\'s feelings about something they worked really hard on.',
@@ -17,6 +19,7 @@ const MIN_CHARS = 10
 const MAX_CHARS = 3000
 
 export function CaseInput({ value, onChange, onSubmit, disabled }: Props) {
+  const t = useT()
   const len = value.length
   const isValid = len >= MIN_CHARS && len <= MAX_CHARS
   const placeholder = PLACEHOLDER_EXAMPLES[0]
@@ -50,7 +53,7 @@ export function CaseInput({ value, onChange, onSubmit, disabled }: Props) {
         </div>
       </div>
       {len > 0 && len < MIN_CHARS && (
-        <p className="text-xs text-[#d97706] mt-1.5 ml-1">Need at least {MIN_CHARS} characters to file a case.</p>
+        <p className="text-xs text-[#d97706] mt-1.5 ml-1">{t('case.min_chars', { count: MIN_CHARS })}</p>
       )}
     </div>
   )

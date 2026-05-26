@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { TrialResponse } from '../types'
 import { getTrialClaimToken } from '../utils/trialClaims'
+import { useT } from '../i18n'
 
 const TERMINAL_STATUSES = new Set(['completed', 'failed', 'safety_blocked'])
 const POLL_INTERVAL = 2000
 
 export function useTrial(id: string | undefined) {
+  const t = useT()
   const [data, setData] = useState<TrialResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +26,7 @@ export function useTrial(id: string | undefined) {
         return true
       }
       if (!res.ok) {
-        setError('Failed to load trial')
+        setError(t('errors.load_trials'))
         setLoading(false)
         return true
       }

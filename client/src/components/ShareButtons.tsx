@@ -3,6 +3,7 @@ import { toPng } from 'html-to-image'
 import { VerdictCard, type VerdictOrientation } from './VerdictCard'
 import type { ShareCard } from '../types'
 import { formatScorePercent } from '../utils/formatScore'
+import { useT } from '../i18n'
 
 export interface ShareableVerdict {
   shareCard: ShareCard
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function ShareButtons({ verdict }: Props) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -95,7 +97,7 @@ export function ShareButtons({ verdict }: Props) {
           onClick={copyText}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#1e1e2e] text-sm text-[#9ca3af] hover:text-[#f0ead6] hover:border-[#2a2a3e] transition-all cursor-pointer"
         >
-          {copied ? '✓ Copied!' : copyError ? 'Copy failed' : '📋 Copy verdict'}
+          {copied ? t('share.copied') : copyError ? t('share.copy_failed') : t('share.copy_verdict')}
         </button>
 
         <div className="relative">
@@ -104,7 +106,7 @@ export function ShareButtons({ verdict }: Props) {
             disabled={downloading}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#1e1e2e] text-sm text-[#9ca3af] hover:text-[#f0ead6] hover:border-[#2a2a3e] transition-all cursor-pointer disabled:opacity-50"
           >
-            {downloading ? '⏳ Generating...' : '⬇ Download card'}
+            {downloading ? t('share.generating') : t('share.download_card')}
           </button>
           {showOrientationPicker && (
             <div className="absolute left-0 bottom-full mb-1.5 z-50 rounded-xl border border-[#2a2a3e] bg-[#0f0f1a] overflow-hidden shadow-2xl min-w-[180px]">
@@ -112,15 +114,15 @@ export function ShareButtons({ verdict }: Props) {
                 onClick={() => startDownload('horizontal')}
                 className="w-full text-left px-4 py-3 text-sm text-[#9ca3af] hover:text-[#f0ead6] hover:bg-[#14141f] transition-colors cursor-pointer border-b border-[#1e1e2e]"
               >
-                <span className="block text-xs font-medium text-[#f0ead6] mb-0.5">Horizontal</span>
-                <span className="text-[11px] text-[#6b7280]">Wide format (900 x ~300px)</span>
+                <span className="block text-xs font-medium text-[#f0ead6] mb-0.5">{t('share.horizontal')}</span>
+                <span className="text-[11px] text-[#6b7280]">{t('share.horizontal_desc')}</span>
               </button>
               <button
                 onClick={() => startDownload('vertical')}
                 className="w-full text-left px-4 py-3 text-sm text-[#9ca3af] hover:text-[#f0ead6] hover:bg-[#14141f] transition-colors cursor-pointer"
               >
-                <span className="block text-xs font-medium text-[#f0ead6] mb-0.5">Vertical</span>
-                <span className="text-[11px] text-[#6b7280]">Tall format (520 x ~680px)</span>
+                <span className="block text-xs font-medium text-[#f0ead6] mb-0.5">{t('share.vertical')}</span>
+                <span className="text-[11px] text-[#6b7280]">{t('share.vertical_desc')}</span>
               </button>
             </div>
           )}
