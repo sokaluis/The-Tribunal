@@ -30,21 +30,21 @@ export function ShareButtons({ verdict }: Props) {
   const copyText = () => {
     const sc = verdict.shareCard
     const text = [
-      '⚖ THE TRIBUNAL HAS SPOKEN',
+      `⚖ ${t('share.copied_headline')}`,
       '',
-      `Case: "${verdict.caseText ?? sc.shortCase}"`,
-      `Tribunal: ${verdict.tribunalType.charAt(0).toUpperCase() + verdict.tribunalType.slice(1)} Tribunal`,
+      `${t('share.copied_case')}: "${verdict.caseText ?? sc.shortCase}"`,
+      `${t('share.copied_tribunal')}: ${t(`tribunal.${verdict.tribunalType}.name`)}`,
       '',
-      `Verdict: ${sc.verdict}`,
-      `Score: ${formatScorePercent(verdict.score)} (${verdict.scoreLabel})`,
+      `${t('share.copied_verdict')}: ${sc.verdict}`,
+      `${t('share.copied_score')}: ${formatScorePercent(verdict.score)} (${verdict.scoreLabel})`,
       '',
-      `Charge: ${sc.charge}`,
-      `The court recognizes: ${sc.recognized}`,
-      `The court rejects: ${sc.rejected}`,
+      `${t('share.copied_charge')}: ${sc.charge}`,
+      `${t('share.copied_court_recognizes')}: ${sc.recognized}`,
+      `${t('share.copied_court_rejects')}: ${sc.rejected}`,
       '',
-      `Sentence: ${sc.sentence}`,
+      `${t('share.copied_sentence')}: ${sc.sentence}`,
       '',
-      'Tried at thetribunal.app',
+      `${t('share.copied_tried_at')} thetribunal.app`,
     ].join('\n')
 
     navigator.clipboard.writeText(text).then(() => {

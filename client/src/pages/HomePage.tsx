@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Hero } from '../components/Hero'
 import { CaseInput } from '../components/CaseInput'
@@ -7,24 +7,13 @@ import { ExampleCaseButtons } from '../components/ExampleCaseButtons'
 import { HowItWorks } from '../components/HowItWorks'
 import { VerdictCard } from '../components/VerdictCard'
 import { useCreateTrial } from '../hooks/useCreateTrial'
-import { useT } from '../i18n'
+import { useLocale } from '../i18n'
 import type { TribunalType } from '../types'
-
-const SAMPLE_CARD = {
-  caseNumber: '00421',
-  headline: 'THE TRIBUNAL HAS SPOKEN',
-  shortCase: 'I ghosted a friend for three weeks.',
-  verdict: 'Guilty, with mitigating circumstances',
-  charge: 'Cowardice disguised as self-care.',
-  recognized: 'You were genuinely overwhelmed.',
-  rejected: 'That silence counts as communication.',
-  sentence: 'Send one honest message. Under 120 words. No dramatic monologue.',
-}
 
 const SAMPLE_CASE_TEXT = "I ghosted a close friend for three weeks because I was overwhelmed and didn't want to explain myself."
 
 export function HomePage() {
-  const t = useT()
+  const { t, locale } = useLocale()
   const [caseText, setCaseText] = useState('')
   const [tribunalType, setTribunalType] = useState('relationship')
   const [tribunals, setTribunals] = useState<TribunalType[]>([])
@@ -32,17 +21,39 @@ export function HomePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
+  // Resolve the relationship tribunal from fetched data for localized sample card values
+  const relationshipTribunal = useMemo(
+    () => tribunals.find((tr) => tr.id === 'relationship'),
+    [tribunals],
+  )
+
+  const sampleCard = useMemo(
+    () => ({
+      caseNumber: '00421',
+      headline: t('share.copied_headline'),
+      shortCase: 'I ghosted a friend for three weeks.',
+      verdict: 'Guilty, with mitigating circumstances',
+      charge: 'Cowardice disguised as self-care.',
+      recognized: 'You were genuinely overwhelmed.',
+      rejected: 'That silence counts as communication.',
+      sentence: 'Send one honest message. Under 120 words. No dramatic monologue.',
+    }),
+    [t],
+  )
+
+  const sampleScoreLabel = relationshipTribunal?.scoreLabel ?? t('home.sample_score_label')
+
   useEffect(() => {
     const prefilled = searchParams.get('case')
     if (prefilled) setCaseText(prefilled)
   }, [])
 
   useEffect(() => {
-    fetch('/api/tribunals')
+    fetch(`/api/tribunals?locale=${locale}`)
       .then((r) => r.json())
       .then((data) => setTribunals(data))
       .catch(console.error)
-  }, [])
+  }, [locale])
 
   const handleSubmit = async () => {
     if (!caseText.trim() || caseText.length < 10) return
@@ -121,9 +132,9 @@ export function HomePage() {
           </p>
           <div className="max-w-lg mx-auto">
             <VerdictCard
-              shareCard={SAMPLE_CARD}
+              shareCard={sampleCard}
               score={72}
-              scoreLabel="Asshole Score"
+              scoreLabel={sampleScoreLabel}
               tribunalType="relationship"
               caseText={SAMPLE_CASE_TEXT}
             />

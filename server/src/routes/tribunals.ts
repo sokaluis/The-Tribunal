@@ -17,8 +17,8 @@ router.get('/', (req, res) => {
       icon: tr.icon,
       tone: t(`tribunal.${id}.tone`, locale),
       scoreLabel: t(`tribunal.${id}.score_label`, locale),
-      possibleVerdicts: tr.possibleVerdicts,
-      panelAgents: tr.panelAgents.map((a) => ({ name: a.name, role: a.role })),
+      possibleVerdicts: JSON.parse(t(`tribunal.${id}.verdicts`, locale)) as string[],
+      panelAgents: (JSON.parse(t(`tribunal.${id}.panel_agents`, locale)) as Array<{ name: string; role: string }>).map((a) => ({ name: a.name, role: a.role })),
     }
   })
   res.json(list)

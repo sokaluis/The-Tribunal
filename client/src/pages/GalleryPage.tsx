@@ -23,6 +23,7 @@ interface GalleryVerdict {
   caseSummary: string
   caseText?: string
   shareCard: ShareCard
+  locale: string
 }
 
 export function GalleryPage() {
